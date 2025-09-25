@@ -1,41 +1,44 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
 import { Map, MapStyle, config } from "@maptiler/sdk";
 import "@maptiler/sdk/dist/maptiler-sdk.css";
 import "./RealMap.scss";
 
 export default function RealMap({ selectedLocation }) {
     const size = 200;
+    const mapContainer = useRef(null);
     
     useEffect(() => {
-        // Suppress ResizeObserver error
-        const resizeObserverErrorHandler = (e) => {
-            if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
-                e.preventDefault();
-                e.stopPropagation();
+        // Wait for DOM to be ready and check container
+        const initializeMap = () => {
+            const container = mapContainer.current;
+            if (!container) {
+                console.error("Map container not found");
                 return;
             }
-        };
-        
-        window.addEventListener('error', resizeObserverErrorHandler);
-        
-        const coords = [90.368603, 23.807133];
-        config.apiKey = '4xlqmw5O239jIs3v38vu';
 
-        const map = new Map({
+            // Ensure container has dimensions
+            if (container.offsetWidth === 0 || container.offsetHeight === 0) {
+                console.warn("Map container has no dimensions, retrying...");
+                setTimeout(initializeMap, 100);
+                return;
+            }
 
-            container: "map",
-            terrainControl: true,
-            scaleControl: true,
-            fullscreenControl: "top-left",
-            geolocateControl: true,
-            style: MapStyle.BASIC,
-            center: coords,
-            zoom: 1.5,
-            bearing: 0,
-            pitch: 30,
-            maxPitch: 85,
-            projection: "globe",
-        });
+            const coords = [90.368603, 23.807133];
+            config.apiKey = '4xlqmw5O239jIs3v38vu';
+
+            let map;
+            try {
+                map = new Map({
+                    container: container,
+                    style: MapStyle.BASIC,
+                    center: coords,
+                    zoom: 1.8,
+                    minZoom: 0.5,
+                    maxZoom: 18,
+                    projection: "globe",
+                    bearing: 0,
+                    pitch: 0
+                });
         const pulsingDot = {
             width: size,
             height: size,
@@ -116,14 +119,8 @@ export default function RealMap({ selectedLocation }) {
                 source: 'points',
                 layout: { 'icon-image': 'pulsing-dot' }
             });
-            map.addSource("bathymetry", {
-                type: "raster-dem",
-                url: `https://api.maptiler.com/tiles/ocean-rgb/tiles.json?key=${config.apiKey}`,
-                tileSize: 256,
-            });
 
-            map.setTerrain({ source: "bathymetry", exaggeration: 1.5 });
-
+            // Add atmospheric globe effect
             map.addLayer({
                 id: "sky",
                 type: "sky",
@@ -134,30 +131,34 @@ export default function RealMap({ selectedLocation }) {
                 },
             });
 
-            // Remove MapTiler logo after map loads
-            setTimeout(() => {
-                const logos = document.querySelectorAll(
-                    '.maplibregl-ctrl-logo, .mapboxgl-ctrl-logo, a[href*="maptiler"], .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-attrib'
-                );
-                logos.forEach(logo => {
-                    if (logo) {
-                        logo.style.display = 'none';
-                        logo.style.visibility = 'hidden';
-                        logo.remove();
-                    }
-                });
-            }, 100);
+           
+
         });
 
+            } catch (error) {
+                console.error('Error initializing map:', error);
+                return;
+            }
+
+            return () => {
+                if (map) {
+                    map.remove();
+                }
+            };
+        };
+
+        // Initialize with a small delay to ensure DOM is ready
+        const timeoutId = setTimeout(initializeMap, 100);
+        
         return () => {
-            window.removeEventListener('error', resizeObserverErrorHandler);
-            map.remove();
+            clearTimeout(timeoutId);
         };
     }, []);
 
     return (
         <div
-            id="map"
+            ref={mapContainer}
+            className="real-map-container"
             style={{
                 width: "50vw",
                 height: "80vh",

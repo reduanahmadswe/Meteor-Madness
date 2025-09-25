@@ -1,21 +1,24 @@
-#map {
+.real-map-container {
     position: relative;
     width: 100%;
     height: 80%;
     align-items: center;
 
-    // Hide MapTiler logo completely
+    // Hide MapTiler logo and attribution completely
     .maplibregl-ctrl-logo,
     .mapboxgl-ctrl-logo,
     .maptiler-logo,
     .maplibregl-control-container .maplibregl-ctrl-logo,
-    a[href="https://www.maptiler.com/"],
-    a[href*="maptiler"],
-    div[style*="maptiler"],
     .maplibregl-ctrl-bottom-left,
     .maplibregl-ctrl-bottom-right,
+    .maplibregl-ctrl-bottom-center,
     .maplibregl-ctrl-attrib,
-    .mapboxgl-ctrl-attrib {
+    .mapboxgl-ctrl-attrib,
+    .maplibregl-ctrl-attrib-inner,
+    a[href="https://www.maptiler.com/"],
+    a[href*="maptiler"],
+    a[href*="openstreetmap"],
+    div[style*="maptiler"] {
         display: none !important;
         visibility: hidden !important;
         opacity: 0 !important;
