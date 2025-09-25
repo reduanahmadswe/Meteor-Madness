@@ -204,6 +204,48 @@ function Dashboard() {
           </div>
         </main>
       </div>
+
+      {/* Footer */}
+      <footer className="story-footer">
+        <div className="footer-container">
+          <div className="footer-logo">
+            <div className="logo-icon">
+              <span className="logo-text">IE</span>
+            </div>
+            <span className="logo-title">Impact Explorer 2025</span>
+            <p className="footer-description">
+              Simulating asteroid impacts on Earth using
+              real NASA data for research and
+              education.
+            </p>
+          </div>
+          
+          <div className="footer-nav">
+            <h4>Navigation</h4>
+            <ul>
+              <li><a href="/">Home</a></li>
+              <li><a href="/story">Story Mode</a></li>
+              <li><a href="/dashboard">Simulation Dashboard</a></li>
+              <li><a href="/results">Impact Results</a></li>
+            </ul>
+          </div>
+          
+          <div className="footer-sources">
+            <h4>Data Sources</h4>
+            <ul>
+              <li><a href="https://cneos.jpl.nasa.gov/" target="_blank" rel="noopener noreferrer">NASA CNEOS</a></li>
+              <li><a href="https://ssd.jpl.nasa.gov/" target="_blank" rel="noopener noreferrer">JPL Small-Body Database</a></li>
+              <li><a href="https://neo.ssa.esa.int/" target="_blank" rel="noopener noreferrer">NASA NEO Program</a></li>
+            </ul>
+          </div>
+        </div>
+        
+        <div className="footer-bottom">
+          <p>© 2025 Impact Explorer 2025. All rights reserved.</p>
+          <p>Powered by NASA data. This is a simulation tool for educational purposes.</p>
+        </div>
+      </footer>
+      
     </div>
   );
 }

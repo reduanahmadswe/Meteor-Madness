@@ -1,9 +1,13 @@
 .population-impact {
   background: var(--card-bg);
-  border-radius: 12px;
+  border-radius: 16px;
   border: 1px solid var(--border-color);
-  padding: 1.5rem;
-  backdrop-filter: blur(10px);
+  padding: 2rem;
+  backdrop-filter: blur(15px);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
 
   .impact-header {
     display: flex;

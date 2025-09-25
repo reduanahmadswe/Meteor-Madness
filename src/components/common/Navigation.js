@@ -10,7 +10,6 @@ function Navigation() {
     { path: '/', label: 'Home' },
     { path: '/story', label: 'Story Mode' },
     { path: '/dashboard', label: 'Dashboard' },
-    { path: '/map', label: 'Map Simulation' },
     { path: '/results', label: 'Results' }
   ];
 

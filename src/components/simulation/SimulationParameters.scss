@@ -6,6 +6,27 @@
   backdrop-filter: none;
   color: white;
   box-shadow: none;
+   .location-selector {
+    width: 100%;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+
+    @media (max-width: 768px) {
+      padding: 14px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: 1rem;
+  }
 
   .parameters-header {
     display: flex;
@@ -27,24 +48,42 @@
   }
 
   .parameter-group {
-    margin-bottom: 20px;
+    margin-bottom: 24px;
+
+    @media (max-width: 768px) {
+      margin-bottom: 20px;
+    }
 
     .parameter-label {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
-      font-size: 14px;
+      font-size: 15px;
+
+      @media (max-width: 768px) {
+        font-size: 14px;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+      }
 
       span:first-child {
         color: rgba(255, 255, 255, 0.8);
         font-weight: 500;
+
+        @media (max-width: 768px) {
+          font-size: 13px;
+        }
       }
 
       .parameter-value {
         font-weight: 600;
         color: #00d4ff;
-        font-size: 14px;
+        font-size: 15px;
+
+        @media (max-width: 768px) {
+          font-size: 14px;
+        }
       }
     }
 
@@ -53,9 +92,13 @@
       align-items: center;
       gap: 12px;
 
+      @media (max-width: 768px) {
+        gap: 8px;
+      }
+
       .slider-btn {
-        width: 32px;
-        height: 32px;
+        width: 36px;
+        height: 36px;
         border-radius: 8px;
         background: rgba(0, 212, 255, 0.1);
         border: 1px solid rgba(0, 212, 255, 0.3);
@@ -67,6 +110,13 @@
         font-size: 16px;
         font-weight: 600;
         transition: all 0.2s ease;
+
+        @media (max-width: 768px) {
+          width: 40px;
+          height: 40px;
+          font-size: 18px;
+          border-radius: 10px;
+        }
 
         &:hover {
           background: rgba(0, 212, 255, 0.2);
@@ -88,6 +138,11 @@
         -webkit-appearance: none;
         cursor: pointer;
 
+        @media (max-width: 768px) {
+          height: 8px;
+          border-radius: 4px;
+        }
+
         &::-webkit-slider-track {
           height: 6px;
           background: rgba(255, 255, 255, 0.1);
@@ -103,6 +158,11 @@
           border-radius: 50%;
           cursor: pointer;
           box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+
+          @media (max-width: 768px) {
+            width: 24px;
+            height: 24px;
+          }
         }
 
         &::-moz-range-thumb {
@@ -155,6 +215,12 @@
     font-size: 14px;
     outline: none;
 
+    @media (max-width: 768px) {
+      padding: 14px 16px;
+      font-size: 16px;
+      border-radius: 10px;
+    }
+
     &:focus {
       border-color: rgba(0, 212, 255, 0.6);
       box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
@@ -192,6 +258,11 @@
     border-top: none;
     border-radius: 0 0 8px 8px;
     z-index: 10;
+
+    @media (max-width: 768px) {
+      max-height: 160px;
+      border-radius: 0 0 10px 10px;
+    }
   }
 
   .search-result-item {
@@ -201,6 +272,11 @@
     cursor: pointer;
     border-bottom: 1px solid rgba(0, 212, 255, 0.1);
     transition: all 0.2s ease;
+
+    @media (max-width: 768px) {
+      padding: 14px 16px;
+      font-size: 14px;
+    }
 
     &:hover {
       background: rgba(0, 212, 255, 0.1);
@@ -213,11 +289,16 @@
   }
 
   .asteroid-info {
-    margin: 20px 0;
+    margin: 24px 0;
     padding: 16px;
     background: transparent;
     border: none;
     border-radius: 8px;
+
+    @media (max-width: 768px) {
+      margin: 20px 0;
+      padding: 12px;
+    }
 
     .asteroid-name {
       font-size: 14px;
@@ -232,6 +313,12 @@
       font-size: 12px;
       color: rgba(255, 255, 255, 0.7);
 
+      @media (max-width: 768px) {
+        flex-direction: column;
+        gap: 8px;
+        font-size: 13px;
+      }
+
       span {
         display: flex;
         align-items: center;
@@ -242,31 +329,56 @@
   .simulation-actions {
     display: flex;
     gap: 12px;
-    margin-top: 24px;
+    margin-top: 28px;
+
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 16px;
+      margin-top: 32px;
+    }
 
     .run-simulation-btn {
       flex: 1;
-      padding: 16px 24px;
+      padding: 18px 32px;
       background: linear-gradient(135deg, #00d4ff, #0099cc);
       border: none;
-      border-radius: 12px;
+      border-radius: 16px;
       color: white;
-      font-size: 16px;
-      font-weight: 600;
+      font-size: 18px;
+      font-weight: 700;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 8px;
-      transition: all 0.3s ease;
+      gap: 10px;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 6px 20px rgba(0, 212, 255, 0.25);
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.6s ease;
+      }
 
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 35px rgba(0, 212, 255, 0.4);
+        
+        &::before {
+          left: 100%;
+        }
       }
 
       &:active {
-        transform: translateY(0);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
       }
 
       .btn-icon {

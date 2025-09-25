@@ -6,7 +6,6 @@ import Home from './pages/Home';
 import StoryMode from './pages/StoryMode';
 import Dashboard from './pages/Dashboard';
 import Results from './pages/Results';
-import MapSimulation from './pages/MapSimulation';
 import './styles/main.scss';
 
 function App() {
@@ -30,7 +29,6 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/story" element={<StoryMode />} />
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/map" element={<MapSimulation />} />
             <Route path="/results" element={<Results />} />
           </Routes>
         </div>
