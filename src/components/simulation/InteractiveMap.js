@@ -164,7 +164,7 @@ const InteractiveMap = () => {
 
       {/* Globe Map */}
       <div className="map-container">
-        <GlobeMap selectedLocation={selectedLocation} />
+        <GlobeMap selectedLocation={selectedLocation} selectedAsteroid={selectedAsteroid} />
 
       </div>
     </div>
