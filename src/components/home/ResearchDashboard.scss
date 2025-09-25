@@ -1,0 +1,223 @@
+.research-dashboard {
+  text-align: center;
+  max-width: 1000px;
+  margin: 0 auto;
+
+  .dashboard-header {
+    margin-bottom: 4rem;
+
+    .dashboard-title {
+      font-size: 2.5rem;
+      margin-bottom: 1.5rem;
+      
+      @media (max-width: 768px) {
+        font-size: 1.8rem;
+      }
+    }
+
+    .dashboard-description {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 4rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+  }
+
+  .dashboard-card {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: var(--gradient-primary);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    &:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    &:nth-child(2) {
+      &::before {
+        background: var(--gradient-secondary);
+      }
+    }
+
+    &:nth-child(3) {
+      &::before {
+        background: var(--gradient-danger);
+      }
+    }
+
+    .card-icon {
+      width: 60px;
+      height: 60px;
+      margin: 0 auto 1.5rem;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+
+      &--blue {
+        background: var(--gradient-primary);
+      }
+
+      &--purple {
+        background: var(--gradient-secondary);
+      }
+
+      &--orange {
+        background: var(--gradient-danger);
+      }
+    }
+
+    h3 {
+      font-size: 1.3rem;
+      margin-bottom: 1rem;
+      color: var(--text-primary);
+    }
+
+    p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin-bottom: 2rem;
+    }
+
+    .card-action {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #00d4ff;
+      text-decoration: none;
+      font-weight: 600;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+
+      &:hover {
+        gap: 1rem;
+        
+        .arrow {
+          transform: translateX(4px);
+        }
+      }
+
+      .arrow {
+        transition: transform 0.3s ease;
+      }
+    }
+  }
+
+  .dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 2rem;
+    border: 1px solid var(--border-color);
+
+    @media (max-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+
+    .stat-item {
+      text-align: center;
+      position: relative;
+
+      .stat-number {
+        font-size: 1.8rem;
+        font-weight: 700;
+        color: var(--text-primary);
+        margin-bottom: 0.5rem;
+      }
+
+      .stat-label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 1rem;
+      }
+
+      .stat-bar {
+        height: 4px;
+        border-radius: 2px;
+        position: relative;
+        overflow: hidden;
+        background: rgba(255, 255, 255, 0.1);
+
+        &::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          border-radius: 2px;
+          width: 75%;
+          animation: fillBar 2s ease-out;
+        }
+
+        &--blue::after {
+          background: var(--gradient-primary);
+        }
+
+        &--purple::after {
+          background: var(--gradient-secondary);
+        }
+
+        &--orange::after {
+          background: var(--gradient-danger);
+        }
+      }
+    }
+  }
+}
+
+@keyframes fillBar {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 75%;
+  }
+}

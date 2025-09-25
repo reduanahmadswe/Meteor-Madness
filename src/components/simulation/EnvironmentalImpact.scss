@@ -1,0 +1,112 @@
+.environmental-impact {
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+
+  .impact-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+
+    .header-icon {
+      font-size: 1.2rem;
+    }
+
+    h3 {
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      margin: 0;
+    }
+  }
+
+  .impacts-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .impact-item {
+    .impact-info {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+
+      .impact-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        font-weight: 500;
+      }
+
+      .impact-level {
+        font-size: 0.8rem;
+        font-weight: 600;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+
+        &--high {
+          background: rgba(255, 107, 53, 0.2);
+          color: #ff6b35;
+          border: 1px solid rgba(255, 107, 53, 0.3);
+        }
+
+        &--medium {
+          background: rgba(139, 92, 246, 0.2);
+          color: #8b5cf6;
+          border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        &--critical {
+          background: rgba(239, 68, 68, 0.2);
+          color: #ef4444;
+          border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+      }
+    }
+
+    .impact-progress {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+
+      .progress-bar {
+        flex: 1;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 3px;
+        overflow: hidden;
+
+        .progress-fill {
+          height: 100%;
+          border-radius: 3px;
+          transition: width 1s ease-out;
+
+          &--high {
+            background: linear-gradient(90deg, #ff6b35, #f59e0b);
+          }
+
+          &--medium {
+            background: linear-gradient(90deg, #8b5cf6, #6366f1);
+          }
+
+          &--critical {
+            background: linear-gradient(90deg, #ef4444, #dc2626);
+          }
+        }
+      }
+
+      .progress-value {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        font-weight: 600;
+        min-width: 35px;
+        text-align: right;
+      }
+    }
+  }
+}

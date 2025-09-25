@@ -1,0 +1,37 @@
+import React, { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { AppProvider } from './context/AppContext';
+import Navigation from './components/common/Navigation';
+import Home from './pages/Home';
+import StoryMode from './pages/StoryMode';
+import Dashboard from './pages/Dashboard';
+import Results from './pages/Results';
+import MapSimulation from './pages/MapSimulation';
+import './styles/main.scss';
+
+function App() {
+  useEffect(() => {
+    // Always apply dark mode theme to document
+    document.documentElement.classList.add('dark-mode');
+    document.documentElement.classList.remove('light-mode');
+  }, []);
+
+  return (
+    <AppProvider>
+      <Router>
+        <div className="App">
+          <Navigation />
+          <Routes>
+            <Route path="/" element={<Home />} />
+            <Route path="/story" element={<StoryMode />} />
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/map" element={<MapSimulation />} />
+            <Route path="/results" element={<Results />} />
+          </Routes>
+        </div>
+      </Router>
+    </AppProvider>
+  );
+}
+
+export default App;

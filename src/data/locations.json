@@ -1,0 +1,80 @@
+{
+  "Pacific Ocean": {
+    "type": "ocean",
+    "centroid": { "lat": -0.7031070, "lon": -120.9375000 },
+    "boundingbox": [-60.0, 66.0, 100.0, -70.0],
+    "note": "Huge — use polygon/bbox, or Nominatim for exact matched node",
+    "population": 0,
+    "density": 0
+  },
+  "Atlantic Ocean": {
+    "type": "ocean",
+    "centroid": { "lat": 0.0, "lon": -30.0 },
+    "boundingbox": [-60.0, 70.0, -90.0, 20.0],
+    "population": 0,
+    "density": 0
+  },
+  "Indian Ocean": {
+    "type": "ocean",
+    "centroid": { "lat": -20.0, "lon": 80.0 },
+    "boundingbox": [-60.0, 30.0, 20.0, 120.0],
+    "population": 0,
+    "density": 0
+  },
+  "Dhaka, Bangladesh": {
+    "type": "city",
+    "centroid": { "lat": 23.810332, "lon": 90.412518 },
+    "population": 9000000,
+    "density": 23000,
+    "note": "Major urban center"
+  },
+  "New York, USA": {
+    "type": "city", 
+    "centroid": { "lat": 40.7128, "lon": -74.0060 },
+    "population": 8400000,
+    "density": 10000,
+    "note": "Major urban center"
+  },
+  "Tokyo, Japan": {
+    "type": "city",
+    "centroid": { "lat": 35.6762, "lon": 139.6503 },
+    "population": 37400000,
+    "density": 6000,
+    "note": "Major urban center"
+  },
+  "London, UK": {
+    "type": "city",
+    "centroid": { "lat": 51.5074, "lon": -0.1278 },
+    "population": 9300000,
+    "density": 5700,
+    "note": "Major urban center"
+  },
+  "Cairo, Egypt": {
+    "type": "city",
+    "centroid": { "lat": 30.0444, "lon": 31.2357 },
+    "population": 20900000,
+    "density": 7400,
+    "note": "Major urban center"
+  },
+  "Rural Bangladesh": {
+    "type": "rural",
+    "centroid": { "lat": 24.0, "lon": 90.5 },
+    "population": 500000,
+    "density": 1200,
+    "note": "Rural agricultural area"
+  },
+  "Australian Outback": {
+    "type": "rural",
+    "centroid": { "lat": -25.0, "lon": 133.0 },
+    "population": 50000,
+    "density": 0.1,
+    "note": "Sparsely populated desert"
+  },
+  "Amazon Rainforest": {
+    "type": "rural",
+    "centroid": { "lat": -3.4653, "lon": -62.2159 },
+    "population": 100000,
+    "density": 0.4,
+    "note": "Dense forest, low population"
+  }
+}

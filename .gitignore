@@ -1,0 +1,9 @@
+# Dependencies
+node_modules/
+node_modules
+# Dotenv environment files (keep the example tracked)
+.env
+.env.local
+.env.*.local
+!.env.example
+.vercel

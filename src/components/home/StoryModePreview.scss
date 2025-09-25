@@ -1,0 +1,245 @@
+.story-mode-preview {
+  text-align: left;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 5rem 0;
+
+  .story-header {
+    margin-bottom: 3rem;
+
+    .story-title {
+      font-size: 2.5rem;
+      margin-bottom: 1rem;
+      color: white;
+      
+      @media (max-width: 768px) {
+        font-size: 2rem;
+      }
+
+      .story-mode-label {
+        color: #8b5cf6;
+        font-weight: 400;
+        display: block;
+      }
+    }
+
+    .story-description {
+      font-size: 1rem;
+      color: rgba(255, 255, 255, 0.7);
+      max-width: 500px;
+      line-height: 1.6;
+    }
+  }
+
+  .story-features {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+    margin-bottom: 3rem;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: 2rem;
+    }
+  }
+
+  .feature-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+
+    @media (max-width: 480px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .feature-item {
+    text-align: left;
+    cursor: pointer;
+
+    .feature-icon {
+      width: 36px;
+      height: 36px;
+      background: rgba(139, 92, 246, 0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1rem;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+
+      .icon-number {
+        color: #8b5cf6;
+        font-weight: 600;
+        font-size: 0.875rem;
+      }
+    }
+
+    h4 {
+      font-size: 1rem;
+      margin-bottom: 0.5rem;
+      color: white;
+      font-weight: 500;
+    }
+
+    p {
+      color: rgba(255, 255, 255, 0.6);
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+
+    &:hover {
+      .feature-icon {
+        background: rgba(139, 92, 246, 0.3);
+        transform: scale(1.05);
+      }
+    }
+  }
+
+  .story-preview-visual {
+    position: relative;
+
+    .preview-container {
+      background: rgba(255, 255, 255, 0.05);
+      border-radius: 12px;
+      padding: 2rem;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      position: relative;
+      overflow: hidden;
+
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="0.5" fill="rgba(139,92,246,0.3)"/><circle cx="80" cy="40" r="0.3" fill="rgba(139,92,246,0.2)"/><circle cx="40" cy="80" r="0.8" fill="rgba(139,92,246,0.1)"/></svg>');
+        opacity: 0.3;
+        pointer-events: none;
+      }
+
+      .preview-step {
+        text-align: left;
+        margin-bottom: 1.5rem;
+        position: relative;
+        z-index: 2;
+
+        h4 {
+          color: #8b5cf6;
+          font-size: 0.875rem;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          margin-bottom: 0.5rem;
+        }
+
+        p {
+          color: rgba(255, 255, 255, 0.8);
+          font-size: 0.9rem;
+          line-height: 1.4;
+        }
+      }
+
+      .preview-earth {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 120px;
+        position: relative;
+
+        .earth-globe {
+          width: 80px;
+          height: 80px;
+          background: linear-gradient(135deg, #1e3a8a, #065f46, #047857);
+          border-radius: 50%;
+          position: relative;
+          box-shadow: 0 0 20px rgba(0, 212, 255, 0.3);
+
+          &::after {
+            content: '';
+            position: absolute;
+            top: 10%;
+            left: 15%;
+            width: 60%;
+            height: 60%;
+            background: radial-gradient(ellipse at 30% 30%, rgba(22, 163, 74, 0.8), transparent 70%);
+            border-radius: 50%;
+          }
+        }
+
+        .asteroid-trail {
+          position: absolute;
+          top: 20px;
+          right: 20px;
+          width: 40px;
+          height: 2px;
+          background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+          
+          &::before {
+            content: '';
+            position: absolute;
+            right: -4px;
+            top: -2px;
+            width: 6px;
+            height: 6px;
+            background: #8b5cf6;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #8b5cf6;
+          }
+        }
+      }
+    }
+  }
+
+  .story-action {
+    text-align: left;
+    margin-top: 2rem;
+
+    .btn {
+      padding: 0.875rem 2rem;
+      border-radius: 50px;
+      font-weight: 500;
+      text-decoration: none;
+      display: inline-block;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+
+      &--primary {
+        background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+        color: white;
+
+        &:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 10px 25px rgba(139, 92, 246, 0.3);
+        }
+      }
+
+      &--large {
+        font-size: 1rem;
+        padding: 1rem 2.5rem;
+      }
+    }
+  }
+}
+
+// Animations for the preview visual
+@keyframes asteroidMove {
+  0% {
+    transform: translateX(40px) translateY(-10px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(-20px) translateY(10px);
+    opacity: 0.5;
+  }
+}
+
+.story-preview-visual .asteroid-trail {
+  animation: asteroidMove 3s ease-in-out infinite;
+}

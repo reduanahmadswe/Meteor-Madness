@@ -1,0 +1,54 @@
+.impact-analysis {
+  background: var(--card-bg);
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+
+  .analysis-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+
+    .header-icon {
+      font-size: 1.2rem;
+    }
+
+    h3 {
+      flex: 1;
+      color: var(--text-primary);
+      font-size: 1.2rem;
+      margin: 0;
+    }
+
+    .analysis-filter {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      padding: 0.5rem 0.75rem;
+      color: var(--text-primary);
+      font-size: 0.8rem;
+      outline: none;
+      cursor: pointer;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+
+      option {
+        background: var(--secondary-bg);
+        color: var(--text-primary);
+      }
+
+      &:focus {
+        border-color: #00d4ff;
+        box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
+      }
+    }
+  }
+
+  .chart-container {
+    height: 300px;
+    position: relative;
+  }
+}
