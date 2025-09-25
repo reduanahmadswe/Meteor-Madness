@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import locationsData from '../../data/locations.json';
 import asteroidsData from '../../data/asteroids.json';
 import './SimulationParameters.scss';
 
-function SimulationParameters({ onRunSimulation, onLocationChange, customLocation, setCustomLocation, searchResults, isSearching }) {
+function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, setSearchQuery, searchResults, searchLoading }) {
   // Simulation parameters state
   const [diameter, setDiameter] = useState(250); // meters
   const [velocity, setVelocity] = useState(19.3); // km/s
@@ -27,6 +27,13 @@ function SimulationParameters({ onRunSimulation, onLocationChange, customLocatio
 
   // Don't auto-update parent component - only update when Run Simulation is clicked
   // This prevents the meteor from falling before clicking "Run Simulation"
+
+  // Set default location on component mount
+  useEffect(() => {
+    if (onLocationChange && impactLocation) {
+      onLocationChange(impactLocation);
+    }
+  }, [onLocationChange, impactLocation]);
 
   const handleRunSimulation = () => {
     const parameters = {
@@ -117,22 +124,22 @@ function SimulationParameters({ onRunSimulation, onLocationChange, customLocatio
         <div className="slider-container">
           <button 
             className="slider-btn"
-            onClick={() => setEntryAngle(Math.max(0, entryAngle - 1))}
+            onClick={() => setEntryAngle(Math.max(0, entryAngle - 5))}
           >
             −
           </button>
           <input
             type="range"
             min="0"
-            max="90"
-            step="1"
+            max="360"
+            step="5"
             value={entryAngle}
             onChange={(e) => setEntryAngle(parseInt(e.target.value))}
             className="parameter-slider"
           />
           <button 
             className="slider-btn"
-            onClick={() => setEntryAngle(Math.min(90, entryAngle + 1))}
+            onClick={() => setEntryAngle(Math.min(360, entryAngle + 5))}
           >
             +
           </button>
@@ -166,12 +173,12 @@ function SimulationParameters({ onRunSimulation, onLocationChange, customLocatio
         <div className="search-container">
           <input
             type="text"
-            value={customLocation}
-            onChange={(e) => setCustomLocation(e.target.value)}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search for a city or address..."
             className="location-search-input"
           />
-          {isSearching && <div className="search-loading">Searching...</div>}
+          {searchLoading && <div className="search-loading">Searching...</div>}
           {searchResults.length > 0 && (
             <div className="search-results">
               {searchResults.map((result, index) => (
@@ -179,10 +186,22 @@ function SimulationParameters({ onRunSimulation, onLocationChange, customLocatio
                   key={index}
                   className="search-result-item"
                   onClick={() => {
-                    const locationName = result.display_name.split(',')[0];
-                    setImpactLocation(locationName);
-                    onLocationChange?.(result); // Pass the full result object for custom location
-                    setCustomLocation('');
+                    // Don't update local impactLocation state - let parent handle it
+                    // const locationName = result.display_name.split(',')[0];
+                    // setImpactLocation(locationName);
+                    
+                    // Convert search result to proper format for map
+                    const formattedLocation = {
+                      ...result,
+                      centroid: {
+                        lat: parseFloat(result.lat),
+                        lon: parseFloat(result.lon)
+                      }
+                    };
+                    
+                    console.log('Selected search location:', formattedLocation);
+                    onLocationChange?.(formattedLocation); // Pass formatted location object
+                    setSearchQuery(''); // Clear search query after selection
                   }}
                 >
                   {result.display_name}

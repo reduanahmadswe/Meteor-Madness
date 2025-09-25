@@ -11,7 +11,6 @@ function Dashboard() {
   // Local state for location and asteroid selection
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedAsteroid, setSelectedAsteroid] = useState(null);
-  const [customLocation, setCustomLocation] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -27,6 +26,30 @@ function Dashboard() {
     impactLocation: 'Ocean (Pacific)',
     selectedAsteroid: null
   });
+
+  // Helper function to get display name for selected location
+  const getLocationDisplayName = (location) => {
+    if (!location) return 'No Location Selected';
+    
+    if (typeof location === 'string') {
+      return location;
+    }
+    
+    if (location.display_name) {
+      // For search results from Nominatim API, format the display name
+      const parts = location.display_name.split(',');
+      if (parts.length >= 2) {
+        return `${parts[0].trim()}, ${parts[1].trim()}`;
+      }
+      return parts[0].trim();
+    }
+    
+    if (location.name) {
+      return location.name;
+    }
+    
+    return 'Unknown Location';
+  };
 
   // Search location using OpenStreetMap Nominatim
   const searchLocation = useCallback(async (query) => {
@@ -50,20 +73,21 @@ function Dashboard() {
   // Debounce search
   React.useEffect(() => {
     const timer = setTimeout(() => {
-      searchLocation(customLocation);
+      searchLocation(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
-  }, [customLocation, searchLocation]);
+  }, [searchQuery, searchLocation]);
 
   // Enhanced impact calculation using both asteroid data and simulation parameters
   const impactData = useMemo(() => {
     const location = locationsData[selectedLocation] || selectedLocation;
-    const asteroid = simulationParams.selectedAsteroid;
     
-    if (!location || !asteroid) return null;
+    // Always calculate if we have location and simulation parameters, regardless of selectedAsteroid
+    if (!location) return null;
     
-    const population = location.population || 0;
-    const density = location.density || 0;
+    // Use location population/density or defaults for ocean impacts
+    const population = location.population || (location.type === 'ocean' ? 50000 : 100000); // Default coastal population
+    const density = location.density || (location.type === 'ocean' ? 100 : 500); // people per km²
     
     // Calculate energy based on diameter, velocity, and entry angle
     const diameterKm = simulationParams.diameter / 1000; // Convert meters to km
@@ -71,15 +95,20 @@ function Dashboard() {
     const angleRadians = (simulationParams.entryAngle * Math.PI) / 180;
     
     // Enhanced energy calculation considering velocity and angle
-    const mass = (4/3) * Math.PI * Math.pow(diameterKm/2, 3) * 2600; // kg (assuming rocky density)
-    const kineticEnergy = 0.5 * mass * Math.pow(velocityKmS * 1000, 2); // Joules
-    const angleEfficiency = Math.sin(angleRadians); // Steeper angles are more efficient
+    const radius = diameterKm / 2; // radius in km
+    const volume = (4/3) * Math.PI * Math.pow(radius, 3); // volume in km³
+    const mass = volume * 2.6e12; // kg (rocky density ~2600 kg/m³, converted to kg/km³)
+    const velocityMs = velocityKmS * 1000; // convert km/s to m/s
+    const kineticEnergy = 0.5 * mass * Math.pow(velocityMs, 2); // Joules
+    const angleEfficiency = Math.sin(angleRadians) || 0.1; // Minimum efficiency to avoid 0
     const energy = (kineticEnergy * angleEfficiency) / (4.184e15); // Convert to megatons TNT
     
-    const blastRadius = Math.pow(energy, 1 / 3) * 2.5; // km
-    const affectedArea = Math.PI * blastRadius * blastRadius; // km²
+    // Blast radius calculation based on energy (empirical formula for nuclear explosions)
+    const blastRadius = Math.pow(energy / 0.001, 1 / 3) * 0.5; // km, adjusted for asteroid impact
+    const affectedArea = Math.PI * Math.pow(blastRadius, 2); // km²
     const affectedPopulation = Math.min(population, affectedArea * density);
-    const casualties = affectedPopulation * 0.1;
+    // Casualties calculation based on blast effects (typically 10-30% for major impacts)
+    const casualties = affectedPopulation * 0.15;
     
     // Population impact breakdown
     const directImpact = Math.round(affectedPopulation * 0.25); // 25% direct impact
@@ -118,6 +147,7 @@ function Dashboard() {
 
   // Handle location change from dropdown or search
   const handleLocationChange = useCallback((location) => {
+    console.log('Dashboard: Setting selected location to:', location);
     setSelectedLocation(location);
     // Update map position without triggering meteor animation
     // This will be handled in RealMap component
@@ -144,7 +174,9 @@ function Dashboard() {
           <div className="visualization-panel">
             <div className="panel-header">
               <h3>Selected Impact Zone</h3>
-              <span className="impact-zone-label">Ocean (Pacific)</span>
+              <span className="impact-zone-label">
+                {getLocationDisplayName(selectedLocation)}
+              </span>
             </div>
             <div className="earth-container">
               <Suspense fallback={<div className="loading-spinner"></div>}>
@@ -163,7 +195,11 @@ function Dashboard() {
             <div className="results-grid">
               <PreliminaryResults impactData={impactData} />
               <PopulationImpact impactData={impactData} />
-              <EnvironmentalImpact />
+              <EnvironmentalImpact 
+                impactData={impactData} 
+                simulationParams={simulationParams}
+                selectedLocation={selectedLocation}
+              />
             </div>
           </div>
         </main>

@@ -8,6 +8,7 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
     const size = 200;
     const mapContainer = useRef(null);
     const mapRef = useRef(null);
+    const currentLocationRef = useRef(selectedLocation);
     
     useEffect(() => {
         // Wait for DOM to be ready and check container
@@ -164,23 +165,37 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
         };
     }, []);
 
+    // Helper function to get coordinates from selectedLocation
+    const getTargetCoordinates = (selectedLocation) => {
+        console.log('Getting coordinates for location:', selectedLocation);
+        
+        if (typeof selectedLocation === 'object' && selectedLocation.centroid) {
+            const coords = [selectedLocation.centroid.lon, selectedLocation.centroid.lat];
+            console.log('Using search result coordinates:', coords, 'from centroid:', selectedLocation.centroid);
+            return coords;
+        } else if (typeof selectedLocation === 'string' && locations[selectedLocation]) {
+            const location = locations[selectedLocation];
+            if (location.centroid) {
+                const coords = [location.centroid.lon, location.centroid.lat];
+                console.log('Using dropdown location coordinates:', coords);
+                return coords;
+            }
+        }
+        
+        const defaultCoords = [90.368603, 23.807133]; // Default Bangladesh
+        console.log('Using default coordinates:', defaultCoords);
+        return defaultCoords;
+    };
+
     // Handle location changes separately (without meteor animation)
     useEffect(() => {
         if (!mapRef.current || !selectedLocation) return;
 
-        // Determine target coordinates
-        let targetCoords;
-        
-        if (typeof selectedLocation === 'object' && selectedLocation.centroid) {
-            targetCoords = [selectedLocation.centroid.lon, selectedLocation.centroid.lat];
-        } else if (typeof selectedLocation === 'string' && locations[selectedLocation]) {
-            const location = locations[selectedLocation];
-            if (location.centroid) {
-                targetCoords = [location.centroid.lon, location.centroid.lat];
-            }
-        } else {
-            targetCoords = [90.368603, 23.807133]; // Default Bangladesh
-        }
+        // Update current location ref for simulation use
+        currentLocationRef.current = selectedLocation;
+
+        // Get target coordinates using shared function
+        const targetCoords = getTargetCoordinates(selectedLocation);
 
         // Move map to new location (no meteor animation)
         mapRef.current.flyTo({
@@ -208,45 +223,20 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
 
     // Handle simulation trigger (when Run Simulation is clicked)
     useEffect(() => {
-        if (!mapRef.current || !selectedAsteroid || !selectedLocation || !simulationTrigger) return;
-
-        // First, determine the target coordinates based on selected location
-        let targetCoords;
+        if (!mapRef.current || !selectedAsteroid || !simulationTrigger) return;
         
-        // Check if selectedLocation is from search result or locations JSON
-        if (typeof selectedLocation === 'object' && selectedLocation.centroid) {
-            // Search result from Nominatim or custom location
-            targetCoords = [selectedLocation.centroid.lon, selectedLocation.centroid.lat];
-        } else if (typeof selectedLocation === 'string' && locations[selectedLocation]) {
-            // From locations JSON
-            const location = locations[selectedLocation];
-            if (location.centroid) {
-                targetCoords = [location.centroid.lon, location.centroid.lat];
-            }
-        } else {
-            targetCoords = [90.368603, 23.807133]; // Default Bangladesh
-        }
+        // Get current location from ref (updated by location useEffect)
+        const currentLocation = currentLocationRef.current;
+        if (!currentLocation) return;
 
-        // Animate map to new location
-        mapRef.current.flyTo({
-            center: targetCoords,
-            zoom: 6,
-            duration: 2000,
-            essential: true
-        });
+        // Get target coordinates for meteor animation using shared function
+        const targetCoords = getTargetCoordinates(currentLocation);
+        console.log('Simulation: currentLocation from ref =', currentLocation);
+        console.log('Simulation: targetCoords =', targetCoords);
+        console.log('Simulation: map center =', mapRef.current.getCenter());
 
-        // Update marker position
-        if (mapRef.current.getSource('points')) {
-            mapRef.current.getSource('points').setData({
-                type: 'FeatureCollection',
-                features: [
-                    {
-                        type: 'Feature',
-                        geometry: { type: 'Point', coordinates: targetCoords }
-                    }
-                ]
-            });
-        }
+        // Don't move map again - it's already positioned by the location useEffect
+        // Just start meteor animation directly
 
         // Store references to DOM elements for position updates
         let explosionEl = null;
@@ -260,6 +250,8 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
 
             // Get target position in screen coordinates
             const targetPixel = mapRef.current.project(targetCoords);
+            console.log('Meteor: targetCoords for projection =', targetCoords);
+            console.log('Meteor: targetPixel screen coordinates =', targetPixel);
 
             // Create meteor container
             const meteorContainer = document.createElement('div');
@@ -276,10 +268,11 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
             meteorEl.style.width = `${meteorSize}px`;
             meteorEl.style.height = `${meteorSize}px`;
 
-            // Position meteor at starting point based on entry angle
+            // Position meteor at starting point based on entry angle (0° = from East, clockwise)
             const entryAngle = simulationParams?.entryAngle || 45;
             const angleRadians = (entryAngle * Math.PI) / 180;
             const distance = 500;
+            // Calculate starting position - meteor comes FROM the opposite direction
             const startX = targetPixel.x - (distance * Math.cos(angleRadians));
             const startY = targetPixel.y - (distance * Math.sin(angleRadians));
             meteorEl.style.left = `${startX}px`;
@@ -298,17 +291,23 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
                 if (!startTime) startTime = timestamp;
                 const progress = Math.min((timestamp - startTime) / duration, 1);
 
-                // Calculate current position with pronounced curve for arrow-like trajectory
+                // Calculate current position with dynamic trajectory based on entry angle
                 const targetPixelNow = mapRef.current.project(targetCoords);
-                const currentX = startX + ((targetPixelNow.x - startX) * progress);
-                const currentY = startY + ((targetPixelNow.y - startY) * progress) + (Math.sin(progress * Math.PI) * 60);
+                const baseX = startX + ((targetPixelNow.x - startX) * progress);
+                const baseY = startY + ((targetPixelNow.y - startY) * progress);
+                
+                // Add trajectory curve effect based on entry angle
+                const curveFactor = Math.sin(progress * Math.PI) * 40; // Reduced curve for more realistic path
+                const entryAngleRad = (entryAngle * Math.PI) / 180;
+                const currentX = baseX + (curveFactor * Math.sin(entryAngleRad));
+                const currentY = baseY - (curveFactor * Math.cos(entryAngleRad));
 
                 meteorEl.style.left = `${currentX}px`;
                 meteorEl.style.top = `${currentY}px`;
 
-                // Rotate meteor based on trajectory
-                const angle = Math.atan2(targetPixelNow.y - startY, targetPixelNow.x - startX) * (180 / Math.PI) + 45;
-                meteorEl.style.transform = `rotate(${angle}deg)`;
+                // Rotate meteor based on entry angle trajectory
+                const trajectoryAngle = Math.atan2(targetPixelNow.y - startY, targetPixelNow.x - startX) * (180 / Math.PI);
+                meteorEl.style.transform = `rotate(${trajectoryAngle + 45}deg)`;
 
                 if (progress < 1) {
                     requestAnimationFrame(animateMeteor);
@@ -356,17 +355,18 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
             };
         };
 
-        // Wait for map flyTo animation to complete before showing meteor
+        // Start meteor animation immediately (map is already positioned)
         let cleanup;
         setTimeout(() => {
             cleanup = createMeteorEffect();
-        }, 2500); // Wait 2.5 seconds for flyTo animation (2s) + small buffer
+        }, 500); // Small delay for smooth transition
 
         // Cleanup listeners on unmount/change
         return () => {
             if (cleanup) cleanup();
         };
-    }, [selectedAsteroid, selectedLocation, simulationTrigger, simulationParams]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedAsteroid, simulationTrigger, simulationParams]); // Removed selectedLocation to prevent meteor on location change
 
     return (
         <div
