@@ -18,7 +18,12 @@ function App() {
 
   return (
     <AppProvider>
-      <Router>
+      <Router future={{
+        v7_relativeSplatPath: true,
+        v7_fetcherPersist: true,
+        v7_normalizeFormMethod: true,
+
+      }}>
         <div className="App">
           <Navigation />
           <Routes>
