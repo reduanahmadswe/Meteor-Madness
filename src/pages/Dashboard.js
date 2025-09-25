@@ -1,9 +1,9 @@
 import React, { Suspense, useState, useMemo, useCallback } from 'react';
 import locationsData from '../data/locations.json';
-import asteroidsData from '../data/asteroids.json';
 import PreliminaryResults from '../components/simulation/PreliminaryResults';
 import PopulationImpact from '../components/simulation/PopulationImpact';
 import EnvironmentalImpact from '../components/simulation/EnvironmentalImpact';
+import SimulationParameters from '../components/simulation/SimulationParameters';
 import './Dashboard.scss';
 import RealMap from '../components/RealMap/RealMap';
 
@@ -12,8 +12,21 @@ function Dashboard() {
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [selectedAsteroid, setSelectedAsteroid] = useState(null);
   const [customLocation, setCustomLocation] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
+  
+  // Simulation state
+  const [simulationTrigger, setSimulationTrigger] = useState(0);
+  
+  // Simulation parameters from SimulationParameters component
+  const [simulationParams, setSimulationParams] = useState({
+    diameter: 250, // meters
+    velocity: 19.3, // km/s
+    entryAngle: 45, // degrees
+    impactLocation: 'Ocean (Pacific)',
+    selectedAsteroid: null
+  });
 
   // Search location using OpenStreetMap Nominatim
   const searchLocation = useCallback(async (query) => {
@@ -24,7 +37,7 @@ function Dashboard() {
     setIsSearching(true);
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1`
+        `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=5`
       );
       const data = await response.json();
       setSearchResults(data);
@@ -42,17 +55,27 @@ function Dashboard() {
     return () => clearTimeout(timer);
   }, [customLocation, searchLocation]);
 
-  // Impact calculation logic (from InteractiveMap.js)
+  // Enhanced impact calculation using both asteroid data and simulation parameters
   const impactData = useMemo(() => {
-    if (!selectedLocation || !selectedAsteroid) return null;
-    const locations = locationsData;
-    const asteroids = asteroidsData;
-    const location = locations[selectedLocation] || selectedLocation;
-    const asteroid = asteroids.find(a => a.name === selectedAsteroid);
-    if (!asteroid || !location) return null;
+    const location = locationsData[selectedLocation] || selectedLocation;
+    const asteroid = simulationParams.selectedAsteroid;
+    
+    if (!location || !asteroid) return null;
+    
     const population = location.population || 0;
     const density = location.density || 0;
-    const energy = asteroid.impact_energy_mt;
+    
+    // Calculate energy based on diameter, velocity, and entry angle
+    const diameterKm = simulationParams.diameter / 1000; // Convert meters to km
+    const velocityKmS = simulationParams.velocity;
+    const angleRadians = (simulationParams.entryAngle * Math.PI) / 180;
+    
+    // Enhanced energy calculation considering velocity and angle
+    const mass = (4/3) * Math.PI * Math.pow(diameterKm/2, 3) * 2600; // kg (assuming rocky density)
+    const kineticEnergy = 0.5 * mass * Math.pow(velocityKmS * 1000, 2); // Joules
+    const angleEfficiency = Math.sin(angleRadians); // Steeper angles are more efficient
+    const energy = (kineticEnergy * angleEfficiency) / (4.184e15); // Convert to megatons TNT
+    
     const blastRadius = Math.pow(energy, 1 / 3) * 2.5; // km
     const affectedArea = Math.PI * blastRadius * blastRadius; // km²
     const affectedPopulation = Math.min(population, affectedArea * density);
@@ -68,8 +91,13 @@ function Dashboard() {
       blastRadius: blastRadius.toFixed(1),
       affectedPopulation: Math.round(affectedPopulation).toLocaleString(),
       casualties: Math.round(casualties).toLocaleString(),
-      energy: energy.toLocaleString(),
-      asteroidDiameter: asteroid.diameter_km,
+      energy: energy.toFixed(0),
+      asteroidDiameter: diameterKm.toFixed(2),
+      simulationParams: {
+        diameter: simulationParams.diameter,
+        velocity: simulationParams.velocity,
+        entryAngle: simulationParams.entryAngle
+      },
       populationBreakdown: {
         directImpact,
         secondary,
@@ -77,81 +105,39 @@ function Dashboard() {
         totalAffected
       }
     };
-  }, [selectedLocation, selectedAsteroid]);
+  }, [selectedLocation, simulationParams]);
+
+  // Memoized callback function to prevent infinite re-renders
+  const handleRunSimulation = useCallback((params) => {
+    console.log('Running simulation with parameters:', params);
+    setSimulationParams(params);
+    setSelectedAsteroid(params.selectedAsteroid?.name);
+    setSelectedLocation(params.impactLocation);
+    setSimulationTrigger(prev => prev + 1); // Trigger meteor animation
+  }, []);
+
+  // Handle location change from dropdown or search
+  const handleLocationChange = useCallback((location) => {
+    setSelectedLocation(location);
+    // Update map position without triggering meteor animation
+    // This will be handled in RealMap component
+  }, []);
 
   return (
     <div className="dashboard">
       <div className="dashboard-container">
         <aside className="dashboard-sidebar">
-          <div className="sidebar-header">
-            <div className="simulation-status">
-              <span className="status-indicator status-indicator--ready"></span>
-              <span className="status-text">Simulation Ready</span>
-            </div>
-          </div>
-          {/* Location Selection */}
-          <div className="control-section">
-            <h3>Select Location</h3>
-            <select
-              value={selectedLocation || ''}
-              onChange={e => setSelectedLocation(e.target.value)}
-            >
-              <option value="">Choose a location...</option>
-              {Object.keys(locationsData).map(location => (
-                <option key={location} value={location}>{location}</option>
-              ))}
-            </select>
-            <div className="custom-search">
-              <input
-                type="text"
-                placeholder="Or search for a place..."
-                value={customLocation}
-                onChange={e => setCustomLocation(e.target.value)}
-              />
-              {isSearching && <div className="searching">Searching...</div>}
-              {searchResults.length > 0 && (
-                <div className="search-results">
-                  {searchResults.map((result, index) => (
-                    <div
-                      key={index}
-                      className="search-result"
-                      onClick={() => {
-                        setSelectedLocation({
-                          name: result.display_name,
-                          centroid: {
-                            lat: parseFloat(result.lat),
-                            lon: parseFloat(result.lon)
-                          },
-                          population: 1000000,
-                          density: 1000,
-                          type: 'custom'
-                        });
-                        setCustomLocation('');
-                        setSearchResults([]);
-                      }}
-                    >
-                      {result.display_name}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-          {/* Asteroid Selection */}
-          <div className="control-section">
-            <h3>Select Asteroid</h3>
-            <select
-              value={selectedAsteroid || ''}
-              onChange={e => setSelectedAsteroid(e.target.value)}
-            >
-              <option value="">Choose an asteroid...</option>
-              {asteroidsData.map(asteroid => (
-                <option key={asteroid.name} value={asteroid.name}>
-                  {asteroid.name} (Ø {asteroid.diameter_km} km)
-                </option>
-              ))}
-            </select>
-          </div>
+         
+          
+          {/* Simulation Parameters */}
+          <SimulationParameters 
+            onRunSimulation={handleRunSimulation}
+            onLocationChange={handleLocationChange}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            searchLoading={isSearching}
+            searchResults={searchResults}
+          />
           
         </aside>
         <main className="dashboard-main">
@@ -165,6 +151,8 @@ function Dashboard() {
                 <RealMap
                   selectedLocation={selectedLocation}
                   selectedAsteroid={selectedAsteroid}
+                  simulationTrigger={simulationTrigger}
+                  simulationParams={simulationParams}
                   zoom={0.5}
                   center={{ lat: 0, lng: 0 }}
                 />

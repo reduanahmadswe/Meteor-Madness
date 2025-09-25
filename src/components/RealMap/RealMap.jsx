@@ -4,7 +4,7 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 import "./RealMap.scss";
 import locations from '../../data/locations.json';
 
-export default function RealMap({ selectedLocation, selectedAsteroid }) {
+export default function RealMap({ selectedLocation, selectedAsteroid, simulationTrigger, simulationParams }) {
     const size = 200;
     const mapContainer = useRef(null);
     const mapRef = useRef(null);
@@ -164,29 +164,72 @@ export default function RealMap({ selectedLocation, selectedAsteroid }) {
         };
     }, []);
 
-    // Handle location changes
+    // Handle location changes separately (without meteor animation)
     useEffect(() => {
         if (!mapRef.current || !selectedLocation) return;
 
-        let coordinates;
+        // Determine target coordinates
+        let targetCoords;
+        
+        if (typeof selectedLocation === 'object' && selectedLocation.centroid) {
+            targetCoords = [selectedLocation.centroid.lon, selectedLocation.centroid.lat];
+        } else if (typeof selectedLocation === 'string' && locations[selectedLocation]) {
+            const location = locations[selectedLocation];
+            if (location.centroid) {
+                targetCoords = [location.centroid.lon, location.centroid.lat];
+            }
+        } else {
+            targetCoords = [90.368603, 23.807133]; // Default Bangladesh
+        }
+
+        // Move map to new location (no meteor animation)
+        mapRef.current.flyTo({
+            center: targetCoords,
+            zoom: 6,
+            duration: 1500,
+            essential: true
+        });
+
+        // Update marker position if it exists
+        if (mapRef.current.getSource('points')) {
+            mapRef.current.getSource('points').setData({
+                type: 'FeatureCollection',
+                features: [{
+                    type: 'Feature',
+                    properties: {},
+                    geometry: {
+                        type: 'Point',
+                        coordinates: targetCoords
+                    }
+                }]
+            });
+        }
+    }, [selectedLocation]);
+
+    // Handle simulation trigger (when Run Simulation is clicked)
+    useEffect(() => {
+        if (!mapRef.current || !selectedAsteroid || !selectedLocation || !simulationTrigger) return;
+
+        // First, determine the target coordinates based on selected location
+        let targetCoords;
         
         // Check if selectedLocation is from search result or locations JSON
         if (typeof selectedLocation === 'object' && selectedLocation.centroid) {
             // Search result from Nominatim or custom location
-            coordinates = [selectedLocation.centroid.lon, selectedLocation.centroid.lat];
+            targetCoords = [selectedLocation.centroid.lon, selectedLocation.centroid.lat];
         } else if (typeof selectedLocation === 'string' && locations[selectedLocation]) {
             // From locations JSON
             const location = locations[selectedLocation];
             if (location.centroid) {
-                coordinates = [location.centroid.lon, location.centroid.lat];
+                targetCoords = [location.centroid.lon, location.centroid.lat];
             }
         } else {
-            coordinates = [90.368603, 23.807133]; // Default Bangladesh
+            targetCoords = [90.368603, 23.807133]; // Default Bangladesh
         }
 
         // Animate map to new location
         mapRef.current.flyTo({
-            center: coordinates,
+            center: targetCoords,
             zoom: 6,
             duration: 2000,
             essential: true
@@ -199,25 +242,11 @@ export default function RealMap({ selectedLocation, selectedAsteroid }) {
                 features: [
                     {
                         type: 'Feature',
-                        geometry: { type: 'Point', coordinates: coordinates }
+                        geometry: { type: 'Point', coordinates: targetCoords }
                     }
                 ]
             });
         }
-    }, [selectedLocation]);
-
-    // Handle asteroid selection
-    useEffect(() => {
-        if (!mapRef.current || !selectedAsteroid || !selectedLocation) return;
-
-        // Get current marker coordinates
-        const source = mapRef.current.getSource('points');
-        if (!source) return;
-
-        const data = source._data;
-        if (!data || !data.features || data.features.length === 0) return;
-
-        const targetCoords = data.features[0].geometry.coordinates;
 
         // Store references to DOM elements for position updates
         let explosionEl = null;
@@ -240,10 +269,19 @@ export default function RealMap({ selectedLocation, selectedAsteroid }) {
             // Create meteor element
             meteorEl = document.createElement('div');
             meteorEl.className = 'meteor meteor-falling';
+            
+            // Scale meteor size based on diameter (simulation parameters)
+            const diameter = simulationParams?.diameter || 250;
+            const meteorSize = Math.max(8, Math.min(40, diameter / 25)); // Scale 8-40px based on diameter
+            meteorEl.style.width = `${meteorSize}px`;
+            meteorEl.style.height = `${meteorSize}px`;
 
-            // Position meteor at starting point (much farther from target for dramatic effect)
-            const startX = targetPixel.x - 400;
-            const startY = targetPixel.y - 500;
+            // Position meteor at starting point based on entry angle
+            const entryAngle = simulationParams?.entryAngle || 45;
+            const angleRadians = (entryAngle * Math.PI) / 180;
+            const distance = 500;
+            const startX = targetPixel.x - (distance * Math.cos(angleRadians));
+            const startY = targetPixel.y - (distance * Math.sin(angleRadians));
             meteorEl.style.left = `${startX}px`;
             meteorEl.style.top = `${startY}px`;
 
@@ -251,7 +289,10 @@ export default function RealMap({ selectedLocation, selectedAsteroid }) {
 
             // Animate meteor falling to target
             let startTime = null;
-            const duration = 2000; // 2 seconds
+            // Scale animation duration based on velocity (higher velocity = faster animation)
+            const velocity = simulationParams?.velocity || 19.3;
+            const baseDuration = 2000;
+            const duration = Math.max(1000, baseDuration - (velocity - 19.3) * 50); // Faster for higher velocity
 
             const animateMeteor = (timestamp) => {
                 if (!startTime) startTime = timestamp;
@@ -315,17 +356,17 @@ export default function RealMap({ selectedLocation, selectedAsteroid }) {
             };
         };
 
-        // Add a small delay before showing meteor
+        // Wait for map flyTo animation to complete before showing meteor
         let cleanup;
         setTimeout(() => {
             cleanup = createMeteorEffect();
-        }, 1000);
+        }, 2500); // Wait 2.5 seconds for flyTo animation (2s) + small buffer
 
         // Cleanup listeners on unmount/change
         return () => {
             if (cleanup) cleanup();
         };
-    }, [selectedAsteroid, selectedLocation]);
+    }, [selectedAsteroid, selectedLocation, simulationTrigger, simulationParams]);
 
     return (
         <div

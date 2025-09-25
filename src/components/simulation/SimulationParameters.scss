@@ -1,203 +1,301 @@
-.simulation-parameters {
-  .parameters-title {
+﻿.simulation-parameters {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  backdrop-filter: none;
+  color: white;
+  box-shadow: none;
+
+  .parameters-header {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-size: 1.3rem;
-    margin-bottom: 2rem;
-    color: var(--text-primary);
+    gap: 12px;
+    margin-bottom: 24px;
 
-    .title-icon {
-      font-size: 1.1rem;
+    .header-icon {
+      font-size: 20px;
+      color: #00d4ff;
+    }
+
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: white;
+      margin: 0;
     }
   }
 
   .parameter-group {
-    margin-bottom: 2rem;
-    position: relative;
+    margin-bottom: 20px;
 
     .parameter-label {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-weight: 600;
-      color: var(--text-primary);
-      margin-bottom: 1rem;
-      font-size: 0.9rem;
+      margin-bottom: 12px;
+      font-size: 14px;
+
+      span:first-child {
+        color: rgba(255, 255, 255, 0.8);
+        font-weight: 500;
+      }
 
       .parameter-value {
+        font-weight: 600;
         color: #00d4ff;
-        font-weight: 700;
+        font-size: 14px;
       }
     }
 
     .slider-container {
-      position: relative;
-      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .slider-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(0, 212, 255, 0.1);
+        border: 1px solid rgba(0, 212, 255, 0.3);
+        color: #00d4ff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 16px;
+        font-weight: 600;
+        transition: all 0.2s ease;
+
+        &:hover {
+          background: rgba(0, 212, 255, 0.2);
+          border-color: rgba(0, 212, 255, 0.5);
+        }
+
+        &:active {
+          transform: scale(0.95);
+        }
+      }
 
       .parameter-slider {
-        width: 100%;
+        flex: 1;
         height: 6px;
         background: rgba(255, 255, 255, 0.1);
         border-radius: 3px;
         outline: none;
+        appearance: none;
         -webkit-appearance: none;
         cursor: pointer;
 
+        &::-webkit-slider-track {
+          height: 6px;
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 3px;
+        }
+
         &::-webkit-slider-thumb {
+          appearance: none;
           -webkit-appearance: none;
           width: 20px;
           height: 20px;
-          background: linear-gradient(135deg, #00d4ff, #0099cc);
+          background: #00d4ff;
           border-radius: 50%;
           cursor: pointer;
-          box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
-          transition: all 0.2s ease;
-
-          &:hover {
-            transform: scale(1.1);
-            box-shadow: 0 4px 12px rgba(0, 212, 255, 0.5);
-          }
+          box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
 
         &::-moz-range-thumb {
           width: 20px;
           height: 20px;
-          background: linear-gradient(135deg, #00d4ff, #0099cc);
+          background: #00d4ff;
           border-radius: 50%;
-          cursor: pointer;
           border: none;
-          box-shadow: 0 2px 8px rgba(0, 212, 255, 0.3);
+          cursor: pointer;
+          box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
         }
       }
+    }
+  }
 
-      .slider-marks {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.7rem;
-        color: var(--text-muted);
-        margin-top: 0.25rem;
-      }
+  .location-select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+    cursor: pointer;
+
+    &:focus {
+      border-color: rgba(0, 212, 255, 0.6);
+      box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
     }
 
-    .slider-adjust {
-      position: absolute;
-      right: -10px;
-      top: 35px;
-      width: 30px;
-      height: 30px;
-      background: rgba(255, 255, 255, 0.1);
-      border: 1px solid var(--border-color);
-      border-radius: 50%;
-      color: var(--text-primary);
+    option {
+      background: #1a1f35;
+      color: white;
+    }
+  }
+
+  .search-container {
+    position: relative;
+    width: 100%;
+  }
+
+  .location-search-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-radius: 8px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+
+    &:focus {
+      border-color: rgba(0, 212, 255, 0.6);
+      box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.1);
+    }
+
+    &::placeholder {
+      color: rgba(255, 255, 255, 0.5);
+    }
+  }
+
+  .search-loading {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    padding: 8px 16px;
+    background: rgba(0, 0, 0, 0.8);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    color: #00d4ff;
+    font-size: 12px;
+    z-index: 10;
+  }
+
+  .search-results {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    max-height: 200px;
+    overflow-y: auto;
+    background: rgba(0, 0, 0, 0.9);
+    border: 1px solid rgba(0, 212, 255, 0.3);
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    z-index: 10;
+  }
+
+  .search-result-item {
+    padding: 12px 16px;
+    color: white;
+    font-size: 12px;
+    cursor: pointer;
+    border-bottom: 1px solid rgba(0, 212, 255, 0.1);
+    transition: all 0.2s ease;
+
+    &:hover {
+      background: rgba(0, 212, 255, 0.1);
+      color: #00d4ff;
+    }
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .asteroid-info {
+    margin: 20px 0;
+    padding: 16px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+
+    .asteroid-name {
+      font-size: 14px;
+      color: #00d4ff;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+
+    .asteroid-details {
+      display: flex;
+      gap: 16px;
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.7);
+
+      span {
+        display: flex;
+        align-items: center;
+      }
+    }
+  }
+
+  .simulation-actions {
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+
+    .run-simulation-btn {
+      flex: 1;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, #00d4ff, #0099cc);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      font-weight: 600;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 0.8rem;
+      gap: 8px;
+      transition: all 0.3s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 212, 255, 0.3);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+
+      .btn-icon {
+        font-size: 14px;
+      }
+    }
+
+    .reset-btn {
+      width: 56px;
+      height: 56px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.6);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transition: all 0.2s ease;
 
       &:hover {
-        background: rgba(255, 255, 255, 0.2);
-        color: #00d4ff;
-      }
-    }
-
-    .location-select {
-      width: 100%;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid var(--border-color);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      color: var(--text-primary);
-      font-size: 0.9rem;
-      outline: none;
-      cursor: pointer;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      appearance: none;
-
-      option {
-        background: var(--secondary-bg);
-        color: var(--text-primary);
+        background: rgba(0, 0, 0, 0.5);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.4);
       }
 
-      &:focus {
-        border-color: #00d4ff;
-        box-shadow: 0 0 0 2px rgba(0, 212, 255, 0.2);
-      }
-    }
-
-    .location-expand {
-      position: absolute;
-      right: 10px;
-      top: 35px;
-      background: none;
-      border: none;
-      color: var(--text-muted);
-      cursor: pointer;
-      font-size: 0.8rem;
-      pointer-events: none;
-    }
-  }
-
-  .run-simulation-btn {
-    width: 100%;
-    background: linear-gradient(135deg, #00d4ff, #0099cc);
-    border: none;
-    border-radius: 12px;
-    padding: 1rem 1.5rem;
-    color: white;
-    font-weight: 600;
-    font-size: 1rem;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    position: relative;
-    overflow: hidden;
-
-    &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 8px 25px rgba(0, 212, 255, 0.4);
-    }
-
-    &:disabled {
-      opacity: 0.7;
-      cursor: not-allowed;
-    }
-
-    &.loading {
       .btn-icon {
-        display: none;
+        font-size: 18px;
       }
     }
-
-    .btn-icon {
-      font-size: 0.9rem;
-    }
-
-    .btn-refresh {
-      position: absolute;
-      right: 1rem;
-      font-size: 0.9rem;
-      opacity: 0.7;
-    }
-
-    .loading-spinner {
-      width: 16px;
-      height: 16px;
-      border: 2px solid rgba(255, 255, 255, 0.3);
-      border-top: 2px solid white;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
   }
-}
-
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
 }

@@ -1,135 +1,224 @@
-import React from 'react';
-import { useAppContext } from '../../context/AppContext';
+import React, { useState, useMemo } from 'react';
+import locationsData from '../../data/locations.json';
+import asteroidsData from '../../data/asteroids.json';
 import './SimulationParameters.scss';
 
-function SimulationParameters({ onRunSimulation }) {
-  const { state, dispatch } = useAppContext();
-  const { simulationParams, isLoading } = state;
+function SimulationParameters({ onRunSimulation, onLocationChange, customLocation, setCustomLocation, searchResults, isSearching }) {
+  // Simulation parameters state
+  const [diameter, setDiameter] = useState(250); // meters
+  const [velocity, setVelocity] = useState(19.3); // km/s
+  const [entryAngle, setEntryAngle] = useState(45); // degrees
+  const [impactLocation, setImpactLocation] = useState('Ocean (Pacific)');
 
-  const handleParamChange = (param, value) => {
-    dispatch({
-      type: 'UPDATE_SIMULATION_PARAMS',
-      payload: { [param]: value }
+  // Auto-select asteroid based on diameter
+  const selectedAsteroid = useMemo(() => {
+    // Convert meters to km for comparison
+    const diameterKm = diameter / 1000;
+    
+    // Find asteroid with closest diameter match
+    const closest = asteroidsData.reduce((prev, current) => {
+      const prevDiff = Math.abs(prev.diameter_km - diameterKm);
+      const currentDiff = Math.abs(current.diameter_km - diameterKm);
+      return currentDiff < prevDiff ? current : prev;
     });
-  };
+    
+    return closest;
+  }, [diameter]);
 
-  const locations = [
-    'Ocean (Pacific)',
-    'Ocean (Atlantic)',
-    'Ocean (Indian)',
-    'Land (Continental)',
-    'Land (Urban)',
-    'Land (Rural)'
-  ];
+  // Don't auto-update parent component - only update when Run Simulation is clicked
+  // This prevents the meteor from falling before clicking "Run Simulation"
+
+  const handleRunSimulation = () => {
+    const parameters = {
+      diameter,
+      velocity,
+      entryAngle,
+      impactLocation,
+      selectedAsteroid
+    };
+    onRunSimulation?.(parameters);
+  };
 
   return (
     <div className="simulation-parameters">
-      <h2 className="parameters-title">
-        <span className="title-icon">⚙️</span>
-        Simulation Parameters
-      </h2>
-
-      <div className="parameter-group">
-        <label className="parameter-label">
-          Asteroid Diameter
-          <span className="parameter-value">{simulationParams.diameter} m</span>
-        </label>
-        <div className="slider-container">
-          <input
-            type="range"
-            min="50"
-            max="1000"
-            value={simulationParams.diameter}
-            onChange={(e) => handleParamChange('diameter', parseInt(e.target.value))}
-            className="parameter-slider"
-          />
-          <div className="slider-marks">
-            <span>50m</span>
-            <span>1000m</span>
-          </div>
-        </div>
-        <button className="slider-adjust">+</button>
+      <div className="parameters-header">
+        <div className="header-icon">⚙️</div>
+        <h3>Simulation Parameters</h3>
       </div>
 
+      {/* Asteroid Diameter Slider */}
       <div className="parameter-group">
-        <label className="parameter-label">
-          Velocity
-          <span className="parameter-value">{simulationParams.velocity} km/s</span>
-        </label>
+        <div className="parameter-label">
+          <span>Asteroid Diameter</span>
+          <span className="parameter-value">{diameter} m</span>
+        </div>
         <div className="slider-container">
+          <button 
+            className="slider-btn"
+            onClick={() => setDiameter(Math.max(10, diameter - 10))}
+          >
+            −
+          </button>
+          <input
+            type="range"
+            min="10"
+            max="2000"
+            step="10"
+            value={diameter}
+            onChange={(e) => setDiameter(parseInt(e.target.value))}
+            className="parameter-slider"
+          />
+          <button 
+            className="slider-btn"
+            onClick={() => setDiameter(Math.min(2000, diameter + 10))}
+          >
+            +
+          </button>
+        </div>
+      </div>
+
+      {/* Velocity Slider */}
+      <div className="parameter-group">
+        <div className="parameter-label">
+          <span>Velocity</span>
+          <span className="parameter-value">{velocity} km/s</span>
+        </div>
+        <div className="slider-container">
+          <button 
+            className="slider-btn"
+            onClick={() => setVelocity(Math.max(5, velocity - 0.1))}
+          >
+            −
+          </button>
           <input
             type="range"
             min="5"
             max="50"
             step="0.1"
-            value={simulationParams.velocity}
-            onChange={(e) => handleParamChange('velocity', parseFloat(e.target.value))}
+            value={velocity}
+            onChange={(e) => setVelocity(parseFloat(e.target.value))}
             className="parameter-slider"
           />
-          <div className="slider-marks">
-            <span>5 km/s</span>
-            <span>50 km/s</span>
-          </div>
+          <button 
+            className="slider-btn"
+            onClick={() => setVelocity(Math.min(50, velocity + 0.1))}
+          >
+            +
+          </button>
         </div>
-        <button className="slider-adjust">+</button>
       </div>
 
+      {/* Entry Angle Slider */}
       <div className="parameter-group">
-        <label className="parameter-label">
-          Entry Angle
-          <span className="parameter-value">{simulationParams.angle}°</span>
-        </label>
+        <div className="parameter-label">
+          <span>Entry Angle</span>
+          <span className="parameter-value">{entryAngle}°</span>
+        </div>
         <div className="slider-container">
+          <button 
+            className="slider-btn"
+            onClick={() => setEntryAngle(Math.max(0, entryAngle - 1))}
+          >
+            −
+          </button>
           <input
             type="range"
             min="0"
             max="90"
-            value={simulationParams.angle}
-            onChange={(e) => handleParamChange('angle', parseInt(e.target.value))}
+            step="1"
+            value={entryAngle}
+            onChange={(e) => setEntryAngle(parseInt(e.target.value))}
             className="parameter-slider"
           />
-          <div className="slider-marks">
-            <span>0°</span>
-            <span>90°</span>
-          </div>
+          <button 
+            className="slider-btn"
+            onClick={() => setEntryAngle(Math.min(90, entryAngle + 1))}
+          >
+            +
+          </button>
         </div>
-        <button className="slider-adjust">+</button>
       </div>
 
+      {/* Impact Location Dropdown */}
       <div className="parameter-group">
-        <label className="parameter-label">Impact Location</label>
+        <div className="parameter-label">
+          <span>Impact Location</span>
+        </div>
         <select
-          value={simulationParams.location}
-          onChange={(e) => handleParamChange('location', e.target.value)}
+          value={impactLocation}
+          onChange={(e) => {
+            setImpactLocation(e.target.value);
+            onLocationChange?.(e.target.value); // Notify parent about location change for map movement only
+          }}
           className="location-select"
         >
-          {locations.map((location) => (
-            <option key={location} value={location}>
-              {location}
-            </option>
+          {Object.keys(locationsData).map(location => (
+            <option key={location} value={location}>{location}</option>
           ))}
         </select>
-        <button className="location-expand">⬇</button>
       </div>
 
-      <button
-        className={`run-simulation-btn ${isLoading ? 'loading' : ''}`}
-        onClick={onRunSimulation}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <>
-            <div className="loading-spinner"></div>
-            Running...
-          </>
-        ) : (
-          <>
-            <span className="btn-icon">▶</span>
-            Run Simulation
-          </>
-        )}
-        <span className="btn-refresh">🔄</span>
-      </button>
+      {/* Custom Location Search */}
+      <div className="parameter-group">
+        <div className="parameter-label">
+          <span>Search Custom Location</span>
+        </div>
+        <div className="search-container">
+          <input
+            type="text"
+            value={customLocation}
+            onChange={(e) => setCustomLocation(e.target.value)}
+            placeholder="Search for a city or address..."
+            className="location-search-input"
+          />
+          {isSearching && <div className="search-loading">Searching...</div>}
+          {searchResults.length > 0 && (
+            <div className="search-results">
+              {searchResults.map((result, index) => (
+                <div
+                  key={index}
+                  className="search-result-item"
+                  onClick={() => {
+                    const locationName = result.display_name.split(',')[0];
+                    setImpactLocation(locationName);
+                    onLocationChange?.(result); // Pass the full result object for custom location
+                    setCustomLocation('');
+                  }}
+                >
+                  {result.display_name}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Selected Asteroid Info */}
+      {selectedAsteroid && (
+        <div className="asteroid-info">
+          <div className="asteroid-name">
+            Auto-selected: {selectedAsteroid.name}
+          </div>
+          <div className="asteroid-details">
+            <span>Diameter: {selectedAsteroid.diameter_km} km</span>
+            <span>Risk: {selectedAsteroid.hazard_level}</span>
+          </div>
+        </div>
+      )}
+
+      {/* Run Simulation Button */}
+      <div className="simulation-actions">
+        <button 
+          className="run-simulation-btn"
+          onClick={handleRunSimulation}
+        >
+          <span className="btn-icon">▶</span>
+          Run Simulation
+        </button>
+        <button className="reset-btn">
+          <span className="btn-icon">↻</span>
+        </button>
+      </div>
     </div>
   );
 }
