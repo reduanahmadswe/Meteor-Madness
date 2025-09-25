@@ -11,8 +11,9 @@ function MapSimulation() {
           <p>Select a location and asteroid to analyze potential impact effects</p>
         </div>
       </div>
-      
+
       <div className="map-simulation-content">
+        
         <InteractiveMap />
       </div>
     </div>
