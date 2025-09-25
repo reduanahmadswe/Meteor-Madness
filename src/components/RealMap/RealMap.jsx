@@ -5,7 +5,19 @@ import "./RealMap.scss";
 
 export default function RealMap({ selectedLocation }) {
     const size = 200;
+    
     useEffect(() => {
+        // Suppress ResizeObserver error
+        const resizeObserverErrorHandler = (e) => {
+            if (e.message === 'ResizeObserver loop completed with undelivered notifications.') {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
+        };
+        
+        window.addEventListener('error', resizeObserverErrorHandler);
+        
         const coords = [90.368603, 23.807133];
         config.apiKey = '4xlqmw5O239jIs3v38vu';
 
@@ -121,9 +133,26 @@ export default function RealMap({ selectedLocation }) {
                     "sky-atmosphere-sun-intensity": 15,
                 },
             });
+
+            // Remove MapTiler logo after map loads
+            setTimeout(() => {
+                const logos = document.querySelectorAll(
+                    '.maplibregl-ctrl-logo, .mapboxgl-ctrl-logo, a[href*="maptiler"], .maplibregl-ctrl-bottom-left, .maplibregl-ctrl-attrib'
+                );
+                logos.forEach(logo => {
+                    if (logo) {
+                        logo.style.display = 'none';
+                        logo.style.visibility = 'hidden';
+                        logo.remove();
+                    }
+                });
+            }, 100);
         });
 
-        return () => map.remove();
+        return () => {
+            window.removeEventListener('error', resizeObserverErrorHandler);
+            map.remove();
+        };
     }, []);
 
     return (

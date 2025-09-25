@@ -4,6 +4,40 @@
     height: 80%;
     align-items: center;
 
-    
+    // Hide MapTiler logo completely
+    .maplibregl-ctrl-logo,
+    .mapboxgl-ctrl-logo,
+    .maptiler-logo,
+    .maplibregl-control-container .maplibregl-ctrl-logo,
+    a[href="https://www.maptiler.com/"],
+    a[href*="maptiler"],
+    div[style*="maptiler"],
+    .maplibregl-ctrl-bottom-left,
+    .maplibregl-ctrl-bottom-right,
+    .maplibregl-ctrl-attrib,
+    .mapboxgl-ctrl-attrib {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+        width: 0 !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
 
+    // Hide any logo by background image or content
+    div[style*="background-image"]:not(.maplibregl-canvas-container) {
+        background-image: none !important;
+    }
+
+    // Additional logo hiding - target by content
+    a:contains("MapTiler"), 
+    div:contains("MapTiler") {
+        display: none !important;
+    }
+
+    // Hide the entire bottom control area if needed
+    .maplibregl-ctrl-group:has(.maplibregl-ctrl-logo) {
+        display: none !important;
+    }
 }
