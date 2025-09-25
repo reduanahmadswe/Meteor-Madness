@@ -7,7 +7,7 @@ export default function RealMap({ selectedLocation }) {
     const size = 200;
     const coords = [90.368603, 23.807133];
     useEffect(() => {
-        config.apiKey = "4xlqmw5O239jIs3v38vu";
+        config.apiKey = process.env.MAP_KEY;
         const map = new Map({
 
             container: "map",
