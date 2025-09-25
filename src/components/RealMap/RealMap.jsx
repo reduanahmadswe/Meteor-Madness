@@ -219,31 +219,35 @@ export default function RealMap({ selectedLocation, selectedAsteroid }) {
 
         const targetCoords = data.features[0].geometry.coordinates;
 
+        // Store references to DOM elements for position updates
+        let explosionEl = null;
+        let meteorEl = null;
+
         // Create elaborate meteor impact effect using DOM elements
         const createMeteorEffect = () => {
-            // Clean up any existing meteor elements
-            const existingMeteors = mapContainer.current.querySelectorAll('.meteor-container');
+            // Clean up any existing meteor/explosion elements
+            const existingMeteors = mapContainer.current.querySelectorAll('.meteor-container, .impact-explosion');
             existingMeteors.forEach(meteor => meteor.remove());
 
             // Get target position in screen coordinates
             const targetPixel = mapRef.current.project(targetCoords);
-            
+
             // Create meteor container
             const meteorContainer = document.createElement('div');
             meteorContainer.className = 'meteor-container';
             mapContainer.current.appendChild(meteorContainer);
 
             // Create meteor element
-            const meteor = document.createElement('div');
-            meteor.className = 'meteor meteor-falling';
-            
+            meteorEl = document.createElement('div');
+            meteorEl.className = 'meteor meteor-falling';
+
             // Position meteor at starting point (much farther from target for dramatic effect)
             const startX = targetPixel.x - 400;
             const startY = targetPixel.y - 500;
-            meteor.style.left = `${startX}px`;
-            meteor.style.top = `${startY}px`;
-            
-            meteorContainer.appendChild(meteor);
+            meteorEl.style.left = `${startX}px`;
+            meteorEl.style.top = `${startY}px`;
+
+            meteorContainer.appendChild(meteorEl);
 
             // Animate meteor falling to target
             let startTime = null;
@@ -254,43 +258,73 @@ export default function RealMap({ selectedLocation, selectedAsteroid }) {
                 const progress = Math.min((timestamp - startTime) / duration, 1);
 
                 // Calculate current position with pronounced curve for arrow-like trajectory
-                const currentX = startX + ((targetPixel.x - startX) * progress);
-                const currentY = startY + ((targetPixel.y - startY) * progress) + (Math.sin(progress * Math.PI) * 60);
-                
-                meteor.style.left = `${currentX}px`;
-                meteor.style.top = `${currentY}px`;
-                
+                const targetPixelNow = mapRef.current.project(targetCoords);
+                const currentX = startX + ((targetPixelNow.x - startX) * progress);
+                const currentY = startY + ((targetPixelNow.y - startY) * progress) + (Math.sin(progress * Math.PI) * 60);
+
+                meteorEl.style.left = `${currentX}px`;
+                meteorEl.style.top = `${currentY}px`;
+
                 // Rotate meteor based on trajectory
-                const angle = Math.atan2(targetPixel.y - startY, targetPixel.x - startX) * (180 / Math.PI) + 45;
-                meteor.style.transform = `rotate(${angle}deg)`;
+                const angle = Math.atan2(targetPixelNow.y - startY, targetPixelNow.x - startX) * (180 / Math.PI) + 45;
+                meteorEl.style.transform = `rotate(${angle}deg)`;
 
                 if (progress < 1) {
                     requestAnimationFrame(animateMeteor);
                 } else {
                     // Impact effect
-                    meteor.className = 'meteor meteor-impact';
-                    
-                    // Create explosion effect
-                    const explosion = document.createElement('div');
-                    explosion.className = 'impact-explosion';
-                    explosion.style.left = `${targetPixel.x}px`;
-                    explosion.style.top = `${targetPixel.y}px`;
-                    meteorContainer.appendChild(explosion);
-                    
-                    // Clean up after animations complete
-                    setTimeout(() => {
-                        if (meteorContainer && meteorContainer.parentNode) {
-                            meteorContainer.remove();
-                        }
-                    }, 1000);
+                    meteorEl.className = 'meteor meteor-impact';
+                    // Create persistent explosion effect
+                    explosionEl = document.createElement('div');
+                    explosionEl.className = 'impact-explosion';
+                    explosionEl.style.left = `${targetPixelNow.x}px`;
+                    explosionEl.style.top = `${targetPixelNow.y}px`;
+                    explosionEl.style.position = 'absolute';
+                    explosionEl.style.pointerEvents = 'none';
+                    explosionEl.style.zIndex = '20';
+                    // Add debris
+                    for (let i = 0; i < 8; i++) {
+                        const debris = document.createElement('div');
+                        debris.className = 'impact-debris';
+                        debris.style.left = '50%';
+                        debris.style.top = '50%';
+                        debris.style.transform = `rotate(${45*i}deg)`;
+                        explosionEl.appendChild(debris);
+                    }
+                    mapContainer.current.appendChild(explosionEl);
                 }
             };
 
             requestAnimationFrame(animateMeteor);
+
+            // Listen for map move/rotate and update explosion position
+            const updateExplosionPosition = () => {
+                if (explosionEl) {
+                    const pixel = mapRef.current.project(targetCoords);
+                    explosionEl.style.left = `${pixel.x}px`;
+                    explosionEl.style.top = `${pixel.y}px`;
+                }
+            };
+            mapRef.current.on('move', updateExplosionPosition);
+            mapRef.current.on('rotate', updateExplosionPosition);
+
+            // Clean up listeners when location/asteroid changes
+            return () => {
+                mapRef.current.off('move', updateExplosionPosition);
+                mapRef.current.off('rotate', updateExplosionPosition);
+            };
         };
 
         // Add a small delay before showing meteor
-        setTimeout(createMeteorEffect, 1000);
+        let cleanup;
+        setTimeout(() => {
+            cleanup = createMeteorEffect();
+        }, 1000);
+
+        // Cleanup listeners on unmount/change
+        return () => {
+            if (cleanup) cleanup();
+        };
     }, [selectedAsteroid, selectedLocation]);
 
     return (
