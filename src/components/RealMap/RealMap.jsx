@@ -219,92 +219,78 @@ export default function RealMap({ selectedLocation, selectedAsteroid }) {
 
         const targetCoords = data.features[0].geometry.coordinates;
 
-        // Create asteroid impact effect
-        const createAsteroidEffect = () => {
-            // Remove existing asteroid if any
-            if (mapRef.current.getLayer('asteroid')) {
-                mapRef.current.removeLayer('asteroid');
-                mapRef.current.removeSource('asteroid');
-            }
+        // Create elaborate meteor impact effect using DOM elements
+        const createMeteorEffect = () => {
+            // Clean up any existing meteor elements
+            const existingMeteors = mapContainer.current.querySelectorAll('.meteor-container');
+            existingMeteors.forEach(meteor => meteor.remove());
 
-            // Add a temporary asteroid marker above the target
-            const asteroidStartCoords = [targetCoords[0], targetCoords[1] + 15]; // Start high above
+            // Get target position in screen coordinates
+            const targetPixel = mapRef.current.project(targetCoords);
+            
+            // Create meteor container
+            const meteorContainer = document.createElement('div');
+            meteorContainer.className = 'meteor-container';
+            mapContainer.current.appendChild(meteorContainer);
 
-            mapRef.current.addSource('asteroid', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features: [
-                        {
-                            type: 'Feature',
-                            geometry: { type: 'Point', coordinates: asteroidStartCoords }
-                        }
-                    ]
-                }
-            });
+            // Create meteor element
+            const meteor = document.createElement('div');
+            meteor.className = 'meteor meteor-falling';
+            
+            // Position meteor at starting point (much farther from target for dramatic effect)
+            const startX = targetPixel.x - 400;
+            const startY = targetPixel.y - 500;
+            meteor.style.left = `${startX}px`;
+            meteor.style.top = `${startY}px`;
+            
+            meteorContainer.appendChild(meteor);
 
-            // Add asteroid layer with 3D-like effect
-            mapRef.current.addLayer({
-                id: 'asteroid',
-                type: 'circle',
-                source: 'asteroid',
-                paint: {
-                    'circle-radius': 12,
-                    'circle-color': '#ff4444',
-                    'circle-stroke-width': 3,
-                    'circle-stroke-color': '#ffffff',
-                    'circle-opacity': 0.9
-                }
-            });
+            // Animate meteor falling to target
+            let startTime = null;
+            const duration = 2000; // 2 seconds
 
-            // Animate asteroid falling to target
-            let step = 0;
-            const totalSteps = 120; // 2 seconds at 60fps
-            const animate = () => {
-                step++;
-                const progress = step / totalSteps;
+            const animateMeteor = (timestamp) => {
+                if (!startTime) startTime = timestamp;
+                const progress = Math.min((timestamp - startTime) / duration, 1);
+
+                // Calculate current position with pronounced curve for arrow-like trajectory
+                const currentX = startX + ((targetPixel.x - startX) * progress);
+                const currentY = startY + ((targetPixel.y - startY) * progress) + (Math.sin(progress * Math.PI) * 60);
                 
-                // Calculate current position (falling down with slight curve)
-                const currentY = asteroidStartCoords[1] - (15 * progress);
-                const currentX = asteroidStartCoords[0] + (Math.sin(progress * Math.PI) * 2); // Slight curve
-                const currentCoords = [currentX, currentY];
+                meteor.style.left = `${currentX}px`;
+                meteor.style.top = `${currentY}px`;
+                
+                // Rotate meteor based on trajectory
+                const angle = Math.atan2(targetPixel.y - startY, targetPixel.x - startX) * (180 / Math.PI) + 45;
+                meteor.style.transform = `rotate(${angle}deg)`;
 
-                // Update asteroid position
-                mapRef.current.getSource('asteroid').setData({
-                    type: 'FeatureCollection',
-                    features: [
-                        {
-                            type: 'Feature',
-                            geometry: { type: 'Point', coordinates: currentCoords }
-                        }
-                    ]
-                });
-
-                // Update asteroid size (growing as it approaches)
-                const currentSize = 12 + (progress * 8);
-                mapRef.current.setPaintProperty('asteroid', 'circle-radius', currentSize);
-
-                if (step < totalSteps) {
-                    requestAnimationFrame(animate);
+                if (progress < 1) {
+                    requestAnimationFrame(animateMeteor);
                 } else {
-                    // Impact effect - flash and remove asteroid
-                    mapRef.current.setPaintProperty('asteroid', 'circle-color', '#ffff00');
-                    mapRef.current.setPaintProperty('asteroid', 'circle-radius', 25);
+                    // Impact effect
+                    meteor.className = 'meteor meteor-impact';
                     
+                    // Create explosion effect
+                    const explosion = document.createElement('div');
+                    explosion.className = 'impact-explosion';
+                    explosion.style.left = `${targetPixel.x}px`;
+                    explosion.style.top = `${targetPixel.y}px`;
+                    meteorContainer.appendChild(explosion);
+                    
+                    // Clean up after animations complete
                     setTimeout(() => {
-                        if (mapRef.current && mapRef.current.getLayer('asteroid')) {
-                            mapRef.current.removeLayer('asteroid');
-                            mapRef.current.removeSource('asteroid');
+                        if (meteorContainer && meteorContainer.parentNode) {
+                            meteorContainer.remove();
                         }
-                    }, 500);
+                    }, 1000);
                 }
             };
 
-            animate();
+            requestAnimationFrame(animateMeteor);
         };
 
-        // Add a small delay before showing asteroid
-        setTimeout(createAsteroidEffect, 1000);
+        // Add a small delay before showing meteor
+        setTimeout(createMeteorEffect, 1000);
     }, [selectedAsteroid, selectedLocation]);
 
     return (
