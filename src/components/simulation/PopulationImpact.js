@@ -10,12 +10,18 @@ import './PopulationImpact.scss';
 
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-function PopulationImpact() {
+function PopulationImpact({ impactData }) {
+  // Use dynamic data if available, otherwise use default values
+  const directImpact = impactData?.populationBreakdown?.directImpact || 85000;
+  const secondary = impactData?.populationBreakdown?.secondary || 150000;
+  const longTerm = impactData?.populationBreakdown?.longTerm || 85000;
+  const totalAffected = impactData?.populationBreakdown?.totalAffected || 320000;
+
   const data = {
     labels: ['Direct Impact (25%)', 'Secondary (47%)', 'Long-term Effects (28%)'],
     datasets: [
       {
-        data: [85000, 150000, 85000],
+        data: [directImpact, secondary, longTerm],
         backgroundColor: [
           '#ff6b35',
           '#00d4ff', 
@@ -65,7 +71,11 @@ function PopulationImpact() {
         <div className="chart-container">
           <Doughnut data={data} options={options} />
           <div className="chart-center">
-            <div className="total-affected">320K</div>
+            <div className="total-affected">
+              {totalAffected >= 1000000 ? (totalAffected / 1000000).toFixed(1) + 'M' : 
+               totalAffected >= 1000 ? (totalAffected / 1000).toFixed(0) + 'K' : 
+               totalAffected.toLocaleString()}
+            </div>
             <div className="total-label">Affected</div>
           </div>
         </div>
@@ -74,17 +84,29 @@ function PopulationImpact() {
           <div className="legend-item">
             <div className="legend-color legend-color--orange"></div>
             <span className="legend-label">Direct Impact</span>
-            <span className="legend-value">85K</span>
+            <span className="legend-value">
+              {directImpact >= 1000000 ? (directImpact / 1000000).toFixed(1) + 'M' : 
+               directImpact >= 1000 ? (directImpact / 1000).toFixed(0) + 'K' : 
+               directImpact.toLocaleString()}
+            </span>
           </div>
           <div className="legend-item">
             <div className="legend-color legend-color--blue"></div>
             <span className="legend-label">Secondary</span>
-            <span className="legend-value">150K</span>
+            <span className="legend-value">
+              {secondary >= 1000000 ? (secondary / 1000000).toFixed(1) + 'M' : 
+               secondary >= 1000 ? (secondary / 1000).toFixed(0) + 'K' : 
+               secondary.toLocaleString()}
+            </span>
           </div>
           <div className="legend-item">
             <div className="legend-color legend-color--purple"></div>
             <span className="legend-label">Long-term</span>
-            <span className="legend-value">85K</span>
+            <span className="legend-value">
+              {longTerm >= 1000000 ? (longTerm / 1000000).toFixed(1) + 'M' : 
+               longTerm >= 1000 ? (longTerm / 1000).toFixed(0) + 'K' : 
+               longTerm.toLocaleString()}
+            </span>
           </div>
         </div>
       </div>

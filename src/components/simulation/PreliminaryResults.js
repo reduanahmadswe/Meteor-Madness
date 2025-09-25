@@ -2,7 +2,7 @@ import React from 'react';
 import { useAppContext } from '../../context/AppContext';
 import './PreliminaryResults.scss';
 
-function PreliminaryResults() {
+function PreliminaryResults({ impactData }) {
   const { state } = useAppContext();
   const { isLoading } = state;
 
@@ -24,25 +24,38 @@ function PreliminaryResults() {
       
       <div className="results-list">
         <div className="result-item">
-          <span className="result-label">Energy Released:</span>
-          <span className="result-value result-value--energy">12.1 Mt</span>
-          <span className="result-unit">TNT</span>
+          <span className="result-label">Asteroid Diameter:</span>
+          <span className="result-value">
+            {impactData ? impactData.asteroidDiameter : '2.5'} km
+          </span>
         </div>
         
         <div className="result-item">
-          <span className="result-label">Crater Diameter:</span>
-          <span className="result-value">10.0 km</span>
+          <span className="result-label">Impact Energy:</span>
+          <span className="result-value result-value--energy">
+            {impactData ? impactData.energy : '12,100'} Megatons
+          </span>
         </div>
         
         <div className="result-item">
           <span className="result-label">Blast Radius:</span>
-          <span className="result-value result-value--blast">243.2 km</span>
-          <span className="result-unit">Tsunami Risk:</span>
+          <span className="result-value result-value--blast">
+            {impactData ? impactData.blastRadius : '243.2'} km
+          </span>
         </div>
         
         <div className="result-item">
-          <span className="result-label">Tsunami Height:</span>
-          <span className="result-value result-value--tsunami">HIGH</span>
+          <span className="result-label">Affected Population:</span>
+          <span className="result-value">
+            {impactData ? impactData.affectedPopulation : '2,500,000'}
+          </span>
+        </div>
+        
+        <div className="result-item">
+          <span className="result-label">Estimated Casualties:</span>
+          <span className="result-value result-value--tsunami">
+            {impactData ? impactData.casualties : '250,000'}
+          </span>
         </div>
       </div>
 

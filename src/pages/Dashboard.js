@@ -43,7 +43,7 @@ function Dashboard() {
   }, [customLocation, searchLocation]);
 
   // Impact calculation logic (from InteractiveMap.js)
-  const impact = useMemo(() => {
+  const impactData = useMemo(() => {
     if (!selectedLocation || !selectedAsteroid) return null;
     const locations = locationsData;
     const asteroids = asteroidsData;
@@ -57,12 +57,25 @@ function Dashboard() {
     const affectedArea = Math.PI * blastRadius * blastRadius; // km²
     const affectedPopulation = Math.min(population, affectedArea * density);
     const casualties = affectedPopulation * 0.1;
+    
+    // Population impact breakdown
+    const directImpact = Math.round(affectedPopulation * 0.25); // 25% direct impact
+    const secondary = Math.round(affectedPopulation * 0.47); // 47% secondary effects  
+    const longTerm = Math.round(affectedPopulation * 0.28); // 28% long-term effects
+    const totalAffected = directImpact + secondary + longTerm;
+    
     return {
       blastRadius: blastRadius.toFixed(1),
       affectedPopulation: Math.round(affectedPopulation).toLocaleString(),
       casualties: Math.round(casualties).toLocaleString(),
       energy: energy.toLocaleString(),
-      asteroidDiameter: asteroid.diameter_km
+      asteroidDiameter: asteroid.diameter_km,
+      populationBreakdown: {
+        directImpact,
+        secondary,
+        longTerm,
+        totalAffected
+      }
     };
   }, [selectedLocation, selectedAsteroid]);
 
@@ -139,32 +152,7 @@ function Dashboard() {
               ))}
             </select>
           </div>
-          {/* Impact Analysis */}
-          {impact && (
-            <div className="impact-results">
-              <h3>Impact Analysis</h3>
-              <div className="impact-stat">
-                <span className="label">Asteroid Diameter:</span>
-                <span className="value">{impact.asteroidDiameter} km</span>
-              </div>
-              <div className="impact-stat">
-                <span className="label">Impact Energy:</span>
-                <span className="value">{impact.energy} Megatons</span>
-              </div>
-              <div className="impact-stat">
-                <span className="label">Blast Radius:</span>
-                <span className="value">{impact.blastRadius} km</span>
-              </div>
-              <div className="impact-stat">
-                <span className="label">Affected Population:</span>
-                <span className="value">{impact.affectedPopulation}</span>
-              </div>
-              <div className="impact-stat">
-                <span className="label">Estimated Casualties:</span>
-                <span className="value danger">{impact.casualties}</span>
-              </div>
-            </div>
-          )}
+          
         </aside>
         <main className="dashboard-main">
           <div className="visualization-panel">
@@ -185,8 +173,8 @@ function Dashboard() {
           </div>
           <div className="results-section">
             <div className="results-grid">
-              <PreliminaryResults />
-              <PopulationImpact />
+              <PreliminaryResults impactData={impactData} />
+              <PopulationImpact impactData={impactData} />
               <EnvironmentalImpact />
             </div>
           </div>
