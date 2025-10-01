@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useMemo, useCallback } from 'react';
+import React, { Suspense, useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import locationsData from '../data/locations.json';
 import PreliminaryResults from '../components/simulation/PreliminaryResults';
 import PopulationImpact from '../components/simulation/PopulationImpact';
@@ -14,11 +14,11 @@ function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   // Simulation state
   const [simulationTrigger, setSimulationTrigger] = useState(0);
-  
-  // Simulation parameters from SimulationParameters component
+
+  // Simulation parameters
   const [simulationParams, setSimulationParams] = useState({
     diameter: 250, // meters
     velocity: 19.3, // km/s
@@ -30,24 +30,23 @@ function Dashboard() {
   // Helper function to get display name for selected location
   const getLocationDisplayName = (location) => {
     if (!location) return 'No Location Selected';
-    
+
     if (typeof location === 'string') {
       return location;
     }
-    
+
     if (location.display_name) {
-      // For search results from Nominatim API, format the display name
       const parts = location.display_name.split(',');
       if (parts.length >= 2) {
         return `${parts[0].trim()}, ${parts[1].trim()}`;
       }
       return parts[0].trim();
     }
-    
+
     if (location.name) {
       return location.name;
     }
-    
+
     return 'Unknown Location';
   };
 
@@ -71,51 +70,43 @@ function Dashboard() {
   }, []);
 
   // Debounce search
-  React.useEffect(() => {
+  useEffect(() => {
     const timer = setTimeout(() => {
       searchLocation(searchQuery);
     }, 300);
     return () => clearTimeout(timer);
   }, [searchQuery, searchLocation]);
 
-  // Enhanced impact calculation using both asteroid data and simulation parameters
+  // Enhanced impact calculation
   const impactData = useMemo(() => {
     const location = locationsData[selectedLocation] || selectedLocation;
-    
-    // Always calculate if we have location and simulation parameters, regardless of selectedAsteroid
     if (!location) return null;
-    
-    // Use location population/density or defaults for ocean impacts
-    const population = location.population || (location.type === 'ocean' ? 50000 : 100000); // Default coastal population
-    const density = location.density || (location.type === 'ocean' ? 100 : 500); // people per km²
-    
-    // Calculate energy based on diameter, velocity, and entry angle
-    const diameterKm = simulationParams.diameter / 1000; // Convert meters to km
+
+    const population = location.population || (location.type === 'ocean' ? 50000 : 100000);
+    const density = location.density || (location.type === 'ocean' ? 100 : 500);
+
+    const diameterKm = simulationParams.diameter / 1000;
     const velocityKmS = simulationParams.velocity;
     const angleRadians = (simulationParams.entryAngle * Math.PI) / 180;
-    
-    // Enhanced energy calculation considering velocity and angle
-    const radius = diameterKm / 2; // radius in km
-    const volume = (4/3) * Math.PI * Math.pow(radius, 3); // volume in km³
-    const mass = volume * 2.6e12; // kg (rocky density ~2600 kg/m³, converted to kg/km³)
-    const velocityMs = velocityKmS * 1000; // convert km/s to m/s
-    const kineticEnergy = 0.5 * mass * Math.pow(velocityMs, 2); // Joules
-    const angleEfficiency = Math.sin(angleRadians) || 0.1; // Minimum efficiency to avoid 0
-    const energy = (kineticEnergy * angleEfficiency) / (4.184e15); // Convert to megatons TNT
-    
-    // Blast radius calculation based on energy (empirical formula for nuclear explosions)
-    const blastRadius = Math.pow(energy / 0.001, 1 / 3) * 0.5; // km, adjusted for asteroid impact
-    const affectedArea = Math.PI * Math.pow(blastRadius, 2); // km²
+
+    const radius = diameterKm / 2;
+    const volume = (4 / 3) * Math.PI * Math.pow(radius, 3);
+    const mass = volume * 2.6e12;
+    const velocityMs = velocityKmS * 1000;
+    const kineticEnergy = 0.5 * mass * Math.pow(velocityMs, 2);
+    const angleEfficiency = Math.sin(angleRadians) || 0.1;
+    const energy = (kineticEnergy * angleEfficiency) / (4.184e15);
+
+    const blastRadius = Math.pow(energy / 0.001, 1 / 3) * 0.5;
+    const affectedArea = Math.PI * Math.pow(blastRadius, 2);
     const affectedPopulation = Math.min(population, affectedArea * density);
-    // Casualties calculation based on blast effects (typically 10-30% for major impacts)
     const casualties = affectedPopulation * 0.15;
-    
-    // Population impact breakdown
-    const directImpact = Math.round(affectedPopulation * 0.25); // 25% direct impact
-    const secondary = Math.round(affectedPopulation * 0.47); // 47% secondary effects  
-    const longTerm = Math.round(affectedPopulation * 0.28); // 28% long-term effects
+
+    const directImpact = Math.round(affectedPopulation * 0.25);
+    const secondary = Math.round(affectedPopulation * 0.47);
+    const longTerm = Math.round(affectedPopulation * 0.28);
     const totalAffected = directImpact + secondary + longTerm;
-    
+
     return {
       blastRadius: blastRadius.toFixed(1),
       affectedPopulation: Math.round(affectedPopulation).toLocaleString(),
@@ -136,31 +127,45 @@ function Dashboard() {
     };
   }, [selectedLocation, simulationParams]);
 
-  // Memoized callback function to prevent infinite re-renders
+  // Run simulation
   const handleRunSimulation = useCallback((params) => {
     console.log('Running simulation with parameters:', params);
     setSimulationParams(params);
     setSelectedAsteroid(params.selectedAsteroid?.name);
     setSelectedLocation(params.impactLocation);
-    setSimulationTrigger(prev => prev + 1); // Trigger meteor animation
+    setSimulationTrigger(prev => prev + 1); // trigger animation
   }, []);
 
-  // Handle location change from dropdown or search
+  // Change location
   const handleLocationChange = useCallback((location) => {
     console.log('Dashboard: Setting selected location to:', location);
     setSelectedLocation(location);
-    // Update map position without triggering meteor animation
-    // This will be handled in RealMap component
   }, []);
+  const handleReset = useCallback(() => {
+    console.log("Reset simulation");
+
+    setSimulationTrigger(prev => prev + 1); // triggers RealMap reset & animation
+
+    setSelectedLocation(null);
+    setSelectedAsteroid(null);
+    setSimulationParams({
+      diameter: 250,
+      velocity: 19.3,
+      entryAngle: 45,
+      impactLocation: 'Ocean (Pacific)',
+      selectedAsteroid: null
+    });
+  }, []);
+
+
+
 
   return (
     <div className="dashboard">
       <div className="dashboard-container">
         <aside className="dashboard-sidebar">
-         
-          
-          {/* Simulation Parameters */}
-          <SimulationParameters 
+          <SimulationParameters
+            handleReset={handleReset}
             onRunSimulation={handleRunSimulation}
             onLocationChange={handleLocationChange}
             searchQuery={searchQuery}
@@ -168,8 +173,8 @@ function Dashboard() {
             searchLoading={isSearching}
             searchResults={searchResults}
           />
-          
         </aside>
+
         <main className="dashboard-main">
           <div className="visualization-panel">
             <div className="panel-header">
@@ -181,22 +186,26 @@ function Dashboard() {
             <div className="earth-container">
               <Suspense fallback={<div className="loading-spinner"></div>}>
                 <RealMap
+                  handleReset={handleReset} // optional, can remove
                   selectedLocation={selectedLocation}
                   selectedAsteroid={selectedAsteroid}
-                  simulationTrigger={simulationTrigger}
+                  simulationTrigger={simulationTrigger} // used for meteor animation
+                  resetTrigger={simulationTrigger}      // pass the same trigger for reset
                   simulationParams={simulationParams}
                   zoom={0.5}
                   center={{ lat: 0, lng: 0 }}
                 />
+
               </Suspense>
             </div>
           </div>
+
           <div className="results-section">
             <div className="results-grid">
               <PreliminaryResults impactData={impactData} />
               <PopulationImpact impactData={impactData} />
-              <EnvironmentalImpact 
-                impactData={impactData} 
+              <EnvironmentalImpact
+                impactData={impactData}
                 simulationParams={simulationParams}
                 selectedLocation={selectedLocation}
               />
@@ -205,7 +214,6 @@ function Dashboard() {
         </main>
       </div>
 
-      {/* Footer */}
       <footer className="story-footer">
         <div className="footer-container">
           <div className="footer-logo">
@@ -214,12 +222,10 @@ function Dashboard() {
             </div>
             <span className="logo-title">Impact Explorer 2025</span>
             <p className="footer-description">
-              Simulating asteroid impacts on Earth using
-              real NASA data for research and
-              education.
+              Simulating asteroid impacts on Earth using real NASA data for research and education.
             </p>
           </div>
-          
+
           <div className="footer-nav">
             <h4>Navigation</h4>
             <ul>
@@ -229,7 +235,7 @@ function Dashboard() {
               <li><a href="/results">Impact Results</a></li>
             </ul>
           </div>
-          
+
           <div className="footer-sources">
             <h4>Data Sources</h4>
             <ul>
@@ -239,13 +245,12 @@ function Dashboard() {
             </ul>
           </div>
         </div>
-        
+
         <div className="footer-bottom">
           <p>© 2025 Impact Explorer 2025. All rights reserved.</p>
           <p>Powered by NASA data. This is a simulation tool for educational purposes.</p>
         </div>
       </footer>
-      
     </div>
   );
 }

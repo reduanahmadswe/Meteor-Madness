@@ -4,12 +4,38 @@ import "@maptiler/sdk/dist/maptiler-sdk.css";
 import "./RealMap.scss";
 import locations from '../../data/locations.json';
 
-export default function RealMap({ selectedLocation, selectedAsteroid, simulationTrigger, simulationParams }) {
+export default function RealMap({ resetTrigger, selectedLocation, selectedAsteroid, simulationTrigger, simulationParams, ...props }) {
     const size = 200;
     const mapContainer = useRef(null);
     const mapRef = useRef(null);
     const currentLocationRef = useRef(selectedLocation);
-    
+
+    const playIncomingSound = () => {
+        const audio = new Audio("/incoming.mp3");
+        audio.play().catch(err => console.error("Incoming sound error:", err));
+    };
+
+    const playImpactSound = () => {
+        const audio = new Audio("/asteroid.mp3");
+        audio.play().catch(err => console.error("Sound error:", err));
+    };
+
+
+    // runMeteorAnimation function modify koro
+    const runMeteorAnimation = () => {
+        if (!mapRef.current) return;
+
+        // === meteor animation logic ===
+        const meteor = document.createElement("div");
+        meteor.className = "meteor";
+        document.body.appendChild(meteor);
+        playImpactSound();
+
+        setTimeout(() => {
+            meteor.remove();
+        }, 5000);
+    };
+
     useEffect(() => {
         // Wait for DOM to be ready and check container
         const initializeMap = () => {
@@ -45,101 +71,101 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
 
                 // Store map reference
                 mapRef.current = map;
-        const pulsingDot = {
-            width: size,
-            height: size,
-            data: new Uint8Array(size * size * 4),
-            onAdd: function () {
-                const canvas = document.createElement('canvas');
-                canvas.width = this.width;
-                canvas.height = this.height;
-                this.context = canvas.getContext('2d');
-            },
+                const pulsingDot = {
+                    width: size,
+                    height: size,
+                    data: new Uint8Array(size * size * 4),
+                    onAdd: function () {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = this.width;
+                        canvas.height = this.height;
+                        this.context = canvas.getContext('2d');
+                    },
 
-            // called once before every frame where the icon will be used
-            render: function () {
-                const duration = 1000;
-                const t = (performance.now() % duration) / duration;
+                    // called once before every frame where the icon will be used
+                    render: function () {
+                        const duration = 1000;
+                        const t = (performance.now() % duration) / duration;
 
-                const radius = (size / 2) * 0.3;
-                const outerRadius = (size / 2) * 0.7 * t + radius;
-                const context = this.context;
+                        const radius = (size / 2) * 0.3;
+                        const outerRadius = (size / 2) * 0.7 * t + radius;
+                        const context = this.context;
 
-                // draw outer circle
-                context.clearRect(0, 0, this.width, this.height);
-                context.beginPath();
-                context.arc(
-                    this.width / 2,
-                    this.height / 2,
-                    outerRadius,
-                    0,
-                    Math.PI * 2
-                );
-                context.fillStyle = 'rgba(255, 200, 200,' + (1 - t) + ')';
-                context.fill();
+                        // draw outer circle
+                        context.clearRect(0, 0, this.width, this.height);
+                        context.beginPath();
+                        context.arc(
+                            this.width / 2,
+                            this.height / 2,
+                            outerRadius,
+                            0,
+                            Math.PI * 2
+                        );
+                        context.fillStyle = 'rgba(255, 200, 200,' + (1 - t) + ')';
+                        context.fill();
 
-                // draw inner circle
-                context.beginPath();
-                context.arc(
-                    this.width / 2,
-                    this.height / 2,
-                    radius,
-                    0,
-                    Math.PI * 2
-                );
-                context.fillStyle = 'rgba(255, 100, 100, 1)';
-                context.strokeStyle = 'white';
-                context.lineWidth = 2 + 4 * (1 - t);
-                context.fill();
-                context.stroke();
-                this.data = context.getImageData(
-                    0,
-                    0,
-                    this.width,
-                    this.height
-                ).data;
-                map.triggerRepaint();
-                return true;
-            }
-        };
-        map.on("load", () => {
+                        // draw inner circle
+                        context.beginPath();
+                        context.arc(
+                            this.width / 2,
+                            this.height / 2,
+                            radius,
+                            0,
+                            Math.PI * 2
+                        );
+                        context.fillStyle = 'rgba(255, 100, 100, 1)';
+                        context.strokeStyle = 'white';
+                        context.lineWidth = 2 + 4 * (1 - t);
+                        context.fill();
+                        context.stroke();
+                        this.data = context.getImageData(
+                            0,
+                            0,
+                            this.width,
+                            this.height
+                        ).data;
+                        map.triggerRepaint();
+                        return true;
+                    }
+                };
+                map.on("load", () => {
 
-            map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
+                    map.addImage('pulsing-dot', pulsingDot, { pixelRatio: 2 });
 
-            map.addSource('points', {
-                type: 'geojson',
-                data: {
-                    type: 'FeatureCollection',
-                    features: [
-                        {
-                            type: 'Feature',
-                            geometry: { type: 'Point', coordinates: coords }
+                    map.addSource('points', {
+                        type: 'geojson',
+                        data: {
+                            type: 'FeatureCollection',
+                            features: [
+                                {
+                                    type: 'Feature',
+                                    geometry: { type: 'Point', coordinates: coords }
+                                }
+                            ]
                         }
-                    ]
-                }
-            });
+                    });
 
-            map.addLayer({
-                id: 'points',
-                type: 'symbol',
-                source: 'points',
-                layout: { 'icon-image': 'pulsing-dot' }
-            });
+                    map.addLayer({
+                        id: 'points',
+                        type: 'symbol',
+                        source: 'points',
+                        layout: { 'icon-image': 'pulsing-dot' }
+                    });
 
-            // Add atmospheric globe effect
-            map.addLayer({
-                id: "sky",
-                type: "sky",
-                paint: {
-                    "sky-type": "atmosphere",
-                    "sky-atmosphere-sun": [0.0, 90.0],
-                    "sky-atmosphere-sun-intensity": 15,
-                },
-            });
+                    // Add atmospheric globe effect
+                    map.addLayer({
+                        id: "sky",
+                        type: "sky",
+                        paint: {
+                            "sky-type": "atmosphere",
+                            "sky-atmosphere-sun": [0.0, 90.0],
+                            "sky-atmosphere-sun-intensity": 15,
+                        },
+                    });
 
-           
 
-        });
+
+                });
 
             } catch (error) {
                 console.error('Error initializing map:', error);
@@ -155,7 +181,7 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
 
         // Initialize with a small delay to ensure DOM is ready
         const timeoutId = setTimeout(initializeMap, 100);
-        
+
         return () => {
             clearTimeout(timeoutId);
             if (mapRef.current) {
@@ -168,7 +194,7 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
     // Helper function to get coordinates from selectedLocation
     const getTargetCoordinates = (selectedLocation) => {
         console.log('Getting coordinates for location:', selectedLocation);
-        
+
         if (typeof selectedLocation === 'object' && selectedLocation.centroid) {
             const coords = [selectedLocation.centroid.lon, selectedLocation.centroid.lat];
             console.log('Using search result coordinates:', coords, 'from centroid:', selectedLocation.centroid);
@@ -181,7 +207,7 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
                 return coords;
             }
         }
-        
+
         const defaultCoords = [90.368603, 23.807133]; // Default Bangladesh
         console.log('Using default coordinates:', defaultCoords);
         return defaultCoords;
@@ -220,11 +246,18 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
             });
         }
     }, [selectedLocation]);
+    useEffect(() => {
+        if (!mapContainer.current) return;
+        const existingMeteors = mapContainer.current.querySelectorAll('.meteor-container, .impact-explosion');
+        existingMeteors.forEach(el => el.remove());
+        console.log('RealMap: cleaned up meteors due to resetTrigger =', resetTrigger);
+    }, [resetTrigger]);
+
 
     // Handle simulation trigger (when Run Simulation is clicked)
     useEffect(() => {
         if (!mapRef.current || !selectedAsteroid || !simulationTrigger) return;
-        
+
         // Get current location from ref (updated by location useEffect)
         const currentLocation = currentLocationRef.current;
         if (!currentLocation) return;
@@ -261,7 +294,7 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
             // Create meteor element
             meteorEl = document.createElement('div');
             meteorEl.className = 'meteor meteor-falling';
-            
+
             // Scale meteor size based on diameter (simulation parameters)
             const diameter = simulationParams?.diameter || 250;
             const meteorSize = Math.max(8, Math.min(40, diameter / 25)); // Scale 8-40px based on diameter
@@ -295,7 +328,7 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
                 const targetPixelNow = mapRef.current.project(targetCoords);
                 const baseX = startX + ((targetPixelNow.x - startX) * progress);
                 const baseY = startY + ((targetPixelNow.y - startY) * progress);
-                
+
                 // Add trajectory curve effect based on entry angle
                 const curveFactor = Math.sin(progress * Math.PI) * 40; // Reduced curve for more realistic path
                 const entryAngleRad = (entryAngle * Math.PI) / 180;
@@ -312,6 +345,7 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
                 if (progress < 1) {
                     requestAnimationFrame(animateMeteor);
                 } else {
+                    playImpactSound();
                     // Impact effect
                     meteorEl.className = 'meteor meteor-impact';
                     // Create persistent explosion effect
@@ -328,14 +362,17 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
                         debris.className = 'impact-debris';
                         debris.style.left = '50%';
                         debris.style.top = '50%';
-                        debris.style.transform = `rotate(${45*i}deg)`;
+                        debris.style.transform = `rotate(${45 * i}deg)`;
                         explosionEl.appendChild(debris);
                     }
                     mapContainer.current.appendChild(explosionEl);
+                    runMeteorAnimation();
+
                 }
             };
-
+            playIncomingSound();
             requestAnimationFrame(animateMeteor);
+
 
             // Listen for map move/rotate and update explosion position
             const updateExplosionPosition = () => {
@@ -365,7 +402,7 @@ export default function RealMap({ selectedLocation, selectedAsteroid, simulation
         return () => {
             if (cleanup) cleanup();
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedAsteroid, simulationTrigger, simulationParams]); // Removed selectedLocation to prevent meteor on location change
 
     return (
