@@ -20,7 +20,7 @@ function Results() {
               <p className="results-subtitle">
                 Detailed impact simulation results for a 250m object at 19.3 km/s
               </p>
-              
+
               <div className="impact-location">
                 <span className="location-label">Impact Location:</span>
                 <span className="location-value">Asteroid Ocean at FL 69,047 W</span>
@@ -98,7 +98,7 @@ function Results() {
                 education.
               </p>
             </div>
-            
+
             <div className="footer-nav">
               <h4>Navigation</h4>
               <ul>
@@ -108,7 +108,7 @@ function Results() {
                 <li><a href="/results">Impact Results</a></li>
               </ul>
             </div>
-            
+
             <div className="footer-sources">
               <h4>Data Sources</h4>
               <ul>
@@ -118,7 +118,7 @@ function Results() {
               </ul>
             </div>
           </div>
-          
+
           <div className="footer-bottom">
             <p>© 2025 Impact Explorer 2025. All rights reserved.</p>
             <p>Powered by NASA data. This is a simulation tool for educational purposes.</p>

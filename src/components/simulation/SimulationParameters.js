@@ -3,7 +3,7 @@ import locationsData from '../../data/locations.json';
 import asteroidsData from '../../data/asteroids.json';
 import './SimulationParameters.scss';
 
-function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, setSearchQuery, searchResults, searchLoading }) {
+function SimulationParameters({ handleReset, onRunSimulation, onLocationChange, searchQuery, setSearchQuery, searchResults, searchLoading }) {
   // Simulation parameters state
   const [diameter, setDiameter] = useState(250); // meters
   const [velocity, setVelocity] = useState(19.3); // km/s
@@ -14,14 +14,14 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
   const selectedAsteroid = useMemo(() => {
     // Convert meters to km for comparison
     const diameterKm = diameter / 1000;
-    
+
     // Find asteroid with closest diameter match
     const closest = asteroidsData.reduce((prev, current) => {
       const prevDiff = Math.abs(prev.diameter_km - diameterKm);
       const currentDiff = Math.abs(current.diameter_km - diameterKm);
       return currentDiff < prevDiff ? current : prev;
     });
-    
+
     return closest;
   }, [diameter]);
 
@@ -60,7 +60,7 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
           <span className="parameter-value">{diameter} m</span>
         </div>
         <div className="slider-container">
-          <button 
+          <button
             className="slider-btn"
             onClick={() => setDiameter(Math.max(10, diameter - 10))}
           >
@@ -75,7 +75,7 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
             onChange={(e) => setDiameter(parseInt(e.target.value))}
             className="parameter-slider"
           />
-          <button 
+          <button
             className="slider-btn"
             onClick={() => setDiameter(Math.min(2000, diameter + 10))}
           >
@@ -91,7 +91,7 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
           <span className="parameter-value">{velocity} km/s</span>
         </div>
         <div className="slider-container">
-          <button 
+          <button
             className="slider-btn"
             onClick={() => setVelocity(Math.max(5, velocity - 0.1))}
           >
@@ -106,7 +106,7 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
             onChange={(e) => setVelocity(parseFloat(e.target.value))}
             className="parameter-slider"
           />
-          <button 
+          <button
             className="slider-btn"
             onClick={() => setVelocity(Math.min(50, velocity + 0.1))}
           >
@@ -122,7 +122,7 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
           <span className="parameter-value">{entryAngle}°</span>
         </div>
         <div className="slider-container">
-          <button 
+          <button
             className="slider-btn"
             onClick={() => setEntryAngle(Math.max(0, entryAngle - 5))}
           >
@@ -137,7 +137,7 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
             onChange={(e) => setEntryAngle(parseInt(e.target.value))}
             className="parameter-slider"
           />
-          <button 
+          <button
             className="slider-btn"
             onClick={() => setEntryAngle(Math.min(360, entryAngle + 5))}
           >
@@ -189,7 +189,7 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
                     // Don't update local impactLocation state - let parent handle it
                     // const locationName = result.display_name.split(',')[0];
                     // setImpactLocation(locationName);
-                    
+
                     // Convert search result to proper format for map
                     const formattedLocation = {
                       ...result,
@@ -198,7 +198,7 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
                         lon: parseFloat(result.lon)
                       }
                     };
-                    
+
                     console.log('Selected search location:', formattedLocation);
                     onLocationChange?.(formattedLocation); // Pass formatted location object
                     setSearchQuery(''); // Clear search query after selection
@@ -227,14 +227,14 @@ function SimulationParameters({ onRunSimulation, onLocationChange, searchQuery, 
 
       {/* Run Simulation Button */}
       <div className="simulation-actions">
-        <button 
+        <button
           className="run-simulation-btn"
           onClick={handleRunSimulation}
         >
           <span className="btn-icon">▶</span>
           Run Simulation
         </button>
-        <button className="reset-btn">
+        <button className="reset-btn" onClick={handleReset}>
           <span className="btn-icon">↻</span>
         </button>
       </div>
